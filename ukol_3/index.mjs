@@ -24,17 +24,26 @@ async function createFiles() {
 		console.log(`Vytvořeno ${n} souborů.`);
 		process.exit(0);
 	} catch (err) {
-		console.error('Chyba při vytváření nebo mazání souborů:', err);
+		console.error('Chyba při vytváření souborů:', err);
 		process.exit(1);
 	}
 }
 
-async function deleteFiles(n) {
-	const deletePromises = [];
-	for (let i = 0; i < n; i++) {
-		deletePromises.push(unlink(`${i}.txt`));
+async function deleteFiles() {
+	try {
+		const data = await readFile('instrukce.txt', 'utf8');
+		const n = Math.ceil(parseFloat(data.trim()));
+		const deletePromises = [];
+		for (let i = 0; i < n; i++) {
+			deletePromises.push(unlink(`${i}.txt`));
+		}
+		await Promise.all(deletePromises);
+		console.log('Všechny soubory byly smazány.');
+		process.exit(0);
+	} catch (err) {
+		console.error('Chyba při mazání souborů:', err);
+		process.exit(1);
 	}
-	await Promise.all(deletePromises);
 }
 
 async function processArguments() {
@@ -43,10 +52,7 @@ async function processArguments() {
 	if (command === 'create') {
 		await createFiles();
 	} else if (command === 'delete') {
-		const data = await readFile('instrukce.txt', 'utf8');
-		const n = Math.ceil(parseFloat(data.trim()));
-		await deleteFiles(n);
-		console.log('Všechny soubory byly smazány.');
+		await deleteFiles();
 	} else {
 		console.error('Neplatný příkaz. Použijte "create" nebo "delete".');
 		process.exit(1);
