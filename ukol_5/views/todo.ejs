@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title><%= todo?.title ? todo.title : 'Nenalezeno' %></title>
+	</head>
+	<body>
+		<% if(todo) { %>
+
+		<h1><%= todo.title %></h1>
+
+		<% if(todo.done) { %>
+
+		<p style="color: green">hotovo</p>
+		<% } else {%>
+		<p style="color: red">nehotovo</p>
+		<% } %>
+		<a href="/">Todos</a>
+		<a href="/remove-todo/<%= todo.id %>"> odebrat </a>
+		<a
+			href="/toggle-todo/<%= todo.id %>?backUrl=<%= encodeURI('/todo/'+todo.id)%>">
+			<%= todo.done ? 'hotovo' : 'nehotovo' %>
+		</a>
+		<% } else { %>
+		<h1>Todo nenalezeno.</h1>
+		<a href="/">Todos</a>
+		<form method="post" action="/add-todo">
+			<input placeholder="Název todočka" name="title" />
+			<button type="submit">Přidat nové todo</button>
+		</form>
+		<% } %>
+	</body>
+</html>
