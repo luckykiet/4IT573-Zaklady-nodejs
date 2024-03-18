@@ -44,6 +44,19 @@ app.post('/add-todo', (req, res) => {
 	res.redirect('/todo/' + todo.id);
 });
 
+app.post('/edit-todo', (req, res) => {
+	const { id, title } = req.body;
+	const todoIndex = todos.findIndex((t) => t.id === Number(id));
+	if (todoIndex === -1) {
+		res.render('error', {
+			message: 'Todo neexistuje.',
+		});
+	} else {
+		todos[todoIndex].title = title;
+		res.redirect('/todo/' + id);
+	}
+});
+
 app.get('/remove-todo/:id', (req, res) => {
 	todos = todos.filter((todo) => {
 		return todo.id !== Number(req.params.id);

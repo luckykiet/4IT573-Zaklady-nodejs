@@ -8,8 +8,15 @@
 	<body>
 		<% if(todo) { %>
 
-		<h1><%= todo.title %></h1>
-
+		<form method="post" action="/edit-todo">
+			<input name="id" type="hidden" value="<%= todo.id %>" />
+			<input
+				placeholder="Název todočka"
+				name="title"
+				type="text"
+				value="<%= todo.title %>" />
+			<button type="submit">Upravit</button>
+		</form>
 		<% if(todo.done) { %>
 
 		<p style="color: green">hotovo</p>
