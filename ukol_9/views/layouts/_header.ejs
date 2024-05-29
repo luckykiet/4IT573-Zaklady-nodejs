@@ -1,0 +1,8 @@
+<a href="/">Domů</a>
+<% if (locals.user) { %>
+  <h2><%= user.name %></h2>
+  <a href="/logout">Odhlásit se</a>
+<% } else { %>
+  <a href="/register">Registrovat se</a>
+  <a href="/login">Přihlásit se</a>
+<% } %>

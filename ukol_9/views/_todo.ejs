@@ -1,0 +1,11 @@
+<h1><%= todo.title %></h1>
+
+<hr>
+
+<a href="/remove-todo/<%= todo.id %>">
+  odebrat
+</a>
+&nbsp;
+<a href="/toggle-todo/<%= todo.id %>">
+  <%= todo.done ? 'hotovo' : 'nehotvo' %>
+</a>

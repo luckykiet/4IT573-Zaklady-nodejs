@@ -1,0 +1,29 @@
+{
+  "name": "table_reservation",
+  "version": "1.0.0",
+  "description": "Table reservation system",
+  "main": "index.js",
+  "author": "Tuan Kiet Nguyen",
+  "license": "MIT",
+  "packageManager": "yarn@4.2.2",
+  "type": "module",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "npm-check-updates": "^16.14.20"
+  },
+  "engines": {
+    "node": ">=20.4.0"
+  },
+  "scripts": {
+    "build-client-win": "cd client && yarn build && cd .. && move /Y \"client\\build\" \"server\\public\" && if exist \"server\\public\\client\" rmdir /s /q \"server\\public\\client\" && rename \"server\\public\\build\" \"client\" ",
+    "build-client": "cd client && yarn build",
+    "deploy-client": "rm -rf ./server/public/client && mv ./client/build ./server/public/client",
+    "dev": "concurrently --kill-others \"cd client && yarn dev\" \"cd server && yarn dev\"",
+    "devhttps": "concurrently --kill-others \"cd client && yarn dev\" \"cd server && yarn devhttps\"",
+    "install-all": "cd server && yarn install && cd ../client && yarn install",
+    "start": "cd server && yarn start",
+    "test": "cd server && yarn test",
+    "upgrade-all": "cd client && yarn upgrade-dep && cd ../server && yarn upgrade-dep && cd .. && yarn upgrade-dep",
+    "upgrade-dep": "ncu -u && yarn install"
+  }
+}

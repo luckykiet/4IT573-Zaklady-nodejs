@@ -1,0 +1,40 @@
+<div id="todoDetail">
+  <%- include('_todo') %>
+</div>
+
+<hr>
+
+<form method="post" action="/update-todo/<%= todo.id %>">
+  <h2>Upravit todočko</h2>
+  <label>Název</label>
+  <input placeholder="Název todočka" name="title" value="<%= todo.title %>">
+  <label>Priorita</label>
+  <select name="priority">
+    <option value="low" <%= todo.priority === 'low' ? 'selected' : '' %>>low</option>
+    <option value="normal" <%= todo.priority === 'normal' ? 'selected' : '' %>>normal</option>
+    <option value="high" <%= todo.priority === 'high' ? 'selected' : '' %>>high</option>
+  </select>
+  <button type="submit">Upravit</button>
+</form>
+
+<hr>
+
+<a href="/">Zpět na seznam</a>
+
+<script>
+  const ws = new WebSocket('ws://localhost:3000')
+
+  ws.addEventListener('message', (ev) => {
+    const data = JSON.parse(ev.data)
+
+    if (String(data.id) === "<%= todo.id %>") {
+      if (data.type === 'todoDetail') {
+        const el = document.getElementById('todoDetail')
+        el.innerHTML = data.html
+      } else if (data.type === 'todoDeleted') {
+        alert('Todočko bylo smazáno')
+        window.location.assign('/')
+      }
+    }
+  })
+</script>

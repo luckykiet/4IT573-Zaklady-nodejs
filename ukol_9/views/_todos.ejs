@@ -1,0 +1,19 @@
+<ul>
+<% for (const todo of todos) { %>
+  <li>
+    <a href="/todo/<%= todo.id %>">
+      <%= todo.title %> <%= todo.user_id %>
+    </a>
+    &nbsp;
+    <a href="/remove-todo/<%= todo.id %>">
+      odebrat
+    </a>
+    &nbsp;
+    <a href="/toggle-todo/<%= todo.id %>">
+      <%= todo.done ? 'hotovo' : 'nehotovo' %>
+    </a>
+    &nbsp;
+    priorita <%= todo.priority %>
+  </li>
+<% } %>
+</ul>
