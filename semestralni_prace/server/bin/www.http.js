@@ -77,8 +77,8 @@ const onListening = () => {
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(process.env.PORT || "8000")
-set("port", port)
+const port = normalizePort(process.env.PORT || "4000")
+app.set("port", port)
 
 /**
  * Create HTTP server.
