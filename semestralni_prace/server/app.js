@@ -16,7 +16,7 @@ import { default as connectMongoDBSession } from "connect-mongodb-session"
 import "./security/passport.js"
 import { CONFIG } from "./config/index.js"
 import { fileURLToPath } from "url"
-
+import { router as pingRouter } from "./routes/api/v1/ping.js"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const MongoDBStore = connectMongoDBSession(expressSession)
@@ -78,7 +78,6 @@ const corsOptions = {
 app.use(cors(corsOptions))
 
 app.use(bodyParser.json())
-
 app.use(express.static(join(__dirname, "public")))
 
 app.use(
@@ -96,15 +95,22 @@ app.use(
 
 app.use(passport.initialize())
 app.use(passport.session())
+const apiPrefix = "/api/v1"
+
+app.use(apiPrefix, pingRouter)
 
 app.get(
   "*",
   /**
+   * @param {Error} err
    * @param {import("express").Request} req
    * @param {import("express").Response} res
    * @param {import("express").NextFunction} next
    */
-  (req, res, next) => {
+  (err, req, res, next) => {
+    if (err) {
+      return next(err)
+    }
     return res.sendFile(
       join(__dirname, "public", "index.html")
     )
