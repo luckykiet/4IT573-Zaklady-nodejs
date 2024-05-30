@@ -3,49 +3,45 @@ import bcrypt from "bcryptjs"
 import dayjs from "dayjs"
 import utc from "dayjs/plugin/utc.js"
 import { Strategy } from "passport-local"
+import Users from "../models/users.js"
+import utils from "../utils.js"
 dayjs.extend(utc)
-
 const LocalStrategy = Strategy
 
 passport.use(
-  new LocalStrategy(async (username, password, done) => {
+  new LocalStrategy(async (email, password, done) => {
     try {
-      username = username.toLowerCase()
-      const subdomainAndUsername = username.split(":")
-      if (subdomainAndUsername.length !== 2) {
+      email = email.toLowerCase()
+
+      if (!email) {
         return done(null, null)
       }
-      const subdomain = subdomainAndUsername[0]
-      if (!utils.subdomainValidator.test(subdomain)) {
+
+      if (!utils.emailRegex.test(email)) {
         return done(null, false, {
-          message: "srv_invalid_subdomain",
+          message: "srv_invalid_email",
         })
       }
 
-      const merchant = await MerchantModel.findOne({
-        subdomain,
+      const user = await Users.findOne({
+        email,
       })
 
-      if (!merchant) {
-        return done(null, false, {
-          message: "srv_merchant_not_found",
-        })
-      }
-
-      const foundUser = await StaffModel.findOne({
-        username: username,
-        merchantId: merchant._id,
-      })
-
-      if (!foundUser) {
+      if (!user) {
         return done(null, false, {
           message: "srv_invalid_credentials",
         })
       }
 
+      if (user.role !== "admin" && !user.isAvailable) {
+        return done(null, false, {
+          message: "srv_account_blocked",
+        })
+      }
+
       const isMatch = await bcrypt.compare(
         password,
-        foundUser.password
+        user.password
       )
 
       if (!isMatch) {
@@ -54,7 +50,7 @@ passport.use(
         })
       }
 
-      return done(null, foundUser)
+      return done(null, user)
     } catch (error) {
       console.error(error)
       return done(null, false, {
@@ -69,16 +65,15 @@ passport.serializeUser((user, done) => {
   done(null, user.id)
 })
 
-passport.deserializeUser((id, done) => {
+passport.deserializeUser(async (id, done) => {
   console.log("Passport deserializeUser")
-  StaffModel.findById(id)
-    .then((user) => {
-      if (!user) {
-        return done(null, false)
-      }
-    })
-    .catch((err) => {
-      console.log(err)
-      return done(err, null)
-    })
+  try {
+    const user = await Users.findById(id)
+    if (!user) {
+      return done(null, false)
+    }
+  } catch (err) {
+    console.log(err)
+    return done(err, null)
+  }
 })

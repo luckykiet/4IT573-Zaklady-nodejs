@@ -1,6 +1,6 @@
 import { Router } from "express"
 
-export const router = new Router()
+export const router = Router()
 
 router.get(
   "/ping",

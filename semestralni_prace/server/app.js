@@ -14,13 +14,15 @@ import passport from "passport"
 import { join, dirname } from "path"
 import { default as connectMongoDBSession } from "connect-mongodb-session"
 import "./security/passport.js"
-import { CONFIG } from "./config/index.js"
+import { CONFIG } from "./config/config.js"
 import { fileURLToPath } from "url"
 import { router as pingRouter } from "./routes/api/v1/ping.js"
+import { router as storeRouter } from "./routes/api/v1/stores.js"
+import connectDB from "./db/index.js"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const MongoDBStore = connectMongoDBSession(expressSession)
-
+connectDB()
 const store = new MongoDBStore({
   uri: CONFIG.MONGODB_URI,
   collection: "sessions",
@@ -98,6 +100,7 @@ app.use(passport.session())
 const apiPrefix = "/api/v1"
 
 app.use(apiPrefix, pingRouter)
+app.use(apiPrefix, storeRouter)
 
 app.get(
   "*",

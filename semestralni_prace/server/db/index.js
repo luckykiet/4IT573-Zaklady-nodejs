@@ -1,5 +1,5 @@
 import { set, connect } from "mongoose"
-import { CONFIG } from "../config"
+import { CONFIG } from "../config/config.js"
 
 set("strictQuery", false)
 
