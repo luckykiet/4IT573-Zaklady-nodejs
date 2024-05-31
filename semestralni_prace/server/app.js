@@ -1,4 +1,5 @@
 //@ts-check
+import * as dotenv from "dotenv"
 import {
   errorLogger,
   errorResponder,
@@ -8,33 +9,46 @@ import compression, { filter as _filter } from "compression"
 import cookieParser from "cookie-parser"
 import cors from "cors"
 import express from "express"
-import expressSession from "express-session"
+import session from "express-session"
 import logger from "morgan"
 import passport from "passport"
 import { join, dirname } from "path"
 import { default as connectMongoDBSession } from "connect-mongodb-session"
-import "./security/passport.js"
 import { CONFIG } from "./config/config.js"
 import { fileURLToPath } from "url"
 import { router as pingRouter } from "./routes/api/v1/ping.js"
 import { router as storeRouter } from "./routes/api/v1/stores.js"
-import connectDB from "./db/index.js"
+import { router as authRouter } from "./routes/api/v1/auth.js"
+
+import Database from "./db/index.js"
+
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const MongoDBStore = connectMongoDBSession(expressSession)
-connectDB()
+dotenv.config()
+const MongoDBStore = connectMongoDBSession(session)
+
+if (
+  process.env.NODE_ENV === "DEV" ||
+  process.env.NODE_ENV === "PRODUCTION"
+) {
+  Database.getInstance()
+}
+
 const store = new MongoDBStore({
   uri: CONFIG.MONGODB_URI,
   collection: "sessions",
+  connectionOptions: {
+    serverSelectionTimeoutMS: 10000,
+  },
+})
+
+store.on("error", function (error) {
+  console.log(error)
 })
 
 const app = express()
 
 app.use(logger("dev"))
-app.use(express.json({ limit: "20mb" }))
-app.use(
-  express.urlencoded({ extended: false, limit: "20mb" })
-)
 app.use(cookieParser())
 app.use(
   compression({
@@ -47,6 +61,11 @@ app.use(
     level: 6,
     threshold: 10 * 1000,
   })
+)
+
+app.use(bodyParser.json({ limit: "20mb" }))
+app.use(
+  bodyParser.urlencoded({ extended: false, limit: "20mb" })
 )
 
 const corsWhitelist = [
@@ -78,15 +97,14 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
-
-app.use(bodyParser.json())
 app.use(express.static(join(__dirname, "public")))
 
 app.use(
-  expressSession({
+  session({
     secret: "thisCommanddoesliter@llYnothing",
     store: store,
-    cookie: { maxAge: 2 * 60 * 60 * 1000 }, // persistent cookie for 10 years in miliseconds
+    cookie: { maxAge: 2 * 60 * 60 * 1000, sameSite: "lax" }, // persistent cookie for 10 years in miliseconds
+    // cookie: { sameSite: "none", secure: true },
     // if not set the cookies will not be saved in the browser after closing it
     resave: true, // Forces the session to be saved back to the session store,
     // even if the session was never modified during the request.
@@ -97,9 +115,11 @@ app.use(
 
 app.use(passport.initialize())
 app.use(passport.session())
+
 const apiPrefix = "/api/v1"
 
 app.use(apiPrefix, pingRouter)
+app.use(apiPrefix, authRouter)
 app.use(apiPrefix, storeRouter)
 
 app.get(

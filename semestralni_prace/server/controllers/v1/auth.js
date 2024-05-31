@@ -2,59 +2,78 @@
 import HttpError from "../../http-error.js"
 import utils from "../../utils.js"
 import { ROLES } from "../../config/roles.js"
+import bcrypt from "bcryptjs"
+import Users from "../../models/users.js"
 
 /**
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @param {import("express").NextFunction} next
  */
-export const registerUser = (req, res, next) => {
+export const registerUser = async (req, res, next) => {
   try {
-    
     const validator = {
       email: utils.emailRegex,
       password: /^.{6,128}$/,
       name: /^.{3,100}$/,
       role: utils.createEnumRegex(ROLES),
-    };
-    if (!utils.isValidRequest(validator, req.body)) {
-      return res.json({ success: false, msg: 'srv_invalid_request' });
     }
-    const { email, name, password } = req.body
-    if (notAllowedUsernames.includes(username)) {
-      return next(new HttpError('srv_duplicate', 409))
+
+    if (!utils.isValidRequest(validator, req.body)) {
+      return next(new HttpError("srv_invalid_request", 400))
+    }
+    const { email, name, password, role } = req.body
+
+    if (
+      role === "admin" &&
+      req.isAuthenticated() &&
+      req.user.role !== "admin"
+    ) {
+      return next(new HttpError("srv_no_privilleges", 403))
+    }
+
+    const foundUser = await Users.findOne({ email })
+
+    if (foundUser) {
+      return next(new HttpError("srv_duplicate", 409))
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
-    const newUser = new UserModel({
-      username,
+
+    const newUser = new Users({
       email,
       name,
       password: hashedPassword,
+      role,
     })
     await newUser.save()
-
-    req.login(newUser, function (err) {
-      if (err) {
-        return next(new HttpError('srv_log_in_failed', 500))
-      }
-
-      const token = utils.signItemToken({
-        isAuthenticated: true,
-        username: req.user.username,
-        name: req.user.name,
-        role: req.user.role,
-        expires: req.session.cookie.expires,
-      })
-
-      return res.status(200).json({
-        success: true,
-        token,
-      })
+    return res.json({
+      success: true,
+      // msg: {
+      //   isAuthenticated: req.isAuthenticated(),
+      //   email: req.user.email,
+      //   name: req.user.name,
+      //   role: req.user.role,
+      // },
     })
+    // return req.login(newUser, function (err) {
+    //   if (err) {
+    //     return next(new HttpError("srv_log_in_failed", 500))
+    //   }
+
+    //   return res.json({
+    //     success: true,
+    //     msg: {
+    //       isAuthenticated: req.isAuthenticated(),
+    //       email: req.user.email,
+    //       name: req.user.name,
+    //       role: req.user.role,
+    //     },
+    //   })
+    // })
   } catch (error) {
     console.log(error)
-    return next(new HttpError('srv_register_failed', 500))
+    return next(new HttpError("srv_register_failed", 500))
   }
 }
 

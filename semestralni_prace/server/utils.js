@@ -26,7 +26,7 @@ const isValidRequest = (validator, request, endpoint) => {
 
   // Check if request has all necessary keys and no extra keys
   if (validKeys.length > testKeys.length) {
-    console.error(
+    console.log(
       endpoint,
       "srv_missing_keys",
       validKeys.filter((key) => !(key in request))
@@ -35,7 +35,7 @@ const isValidRequest = (validator, request, endpoint) => {
   }
 
   if (testKeys.some((key) => !validKeys.includes(key))) {
-    console.error(
+    console.log(
       endpoint,
       "srv_extra_keys",
       testKeys.filter((key) => !validKeys.includes(key))
@@ -46,7 +46,7 @@ const isValidRequest = (validator, request, endpoint) => {
   // Validate each key
   for (let validKey of validKeys) {
     if (!(validKey in request)) {
-      console.error(endpoint, "srv_missing_key", validKey)
+      console.log(endpoint, "srv_missing_key", validKey)
       return false
     }
     const validatorFunction = validator[validKey]
@@ -54,7 +54,7 @@ const isValidRequest = (validator, request, endpoint) => {
 
     if (typeof validatorFunction === "function") {
       if (!validatorFunction(requestValue)) {
-        console.error(
+        console.log(
           endpoint,
           "srv_invalid_format_function",
           validKey,
@@ -63,7 +63,7 @@ const isValidRequest = (validator, request, endpoint) => {
         return false
       }
     } else if (!validatorFunction.test(requestValue)) {
-      console.error(
+      console.log(
         endpoint,
         "srv_invalid_format_key_value",
         validKey,

@@ -1,12 +1,32 @@
-import { set, connect } from "mongoose"
+import mongoose from "mongoose"
 import { CONFIG } from "../config/config.js"
 
-set("strictQuery", false)
+class Database {
+  static _database
 
-const connectDB = async () => {
-  const connection = await connect(CONFIG.MONGODB_URI)
-  console.log("MongoDB connected!")
-  return connection.connection.getClient()
+  constructor() {
+    const dbUrl = CONFIG.MONGODB_URI
+    if (dbUrl) {
+      mongoose
+        .connect(dbUrl)
+        .then(() => console.log("Connected with database"))
+        .catch((err) => {
+          console.error(
+            "Error connecting to database:",
+            err
+          )
+        })
+    } else {
+      console.error("Database URL is not provided")
+    }
+  }
+
+  static getInstance() {
+    if (!this._database) {
+      this._database = new Database()
+    }
+    return this._database
+  }
 }
 
-export default connectDB
+export default Database

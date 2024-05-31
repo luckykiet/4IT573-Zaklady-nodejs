@@ -11,7 +11,7 @@ import _ from "lodash"
  * @param {import("express").NextFunction} next - The Express next middleware function.
  */
 export const errorLogger = (err, req, res, next) => {
-  console.error(
+  console.log(
     "\x1b[31m",
     err.code ? `${err.code} ${err.message}` : err.message
   )
