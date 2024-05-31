@@ -47,30 +47,22 @@ export const registerUser = async (req, res, next) => {
       role,
     })
     await newUser.save()
-    return res.json({
-      success: true,
-      // msg: {
-      //   isAuthenticated: req.isAuthenticated(),
-      //   email: req.user.email,
-      //   name: req.user.name,
-      //   role: req.user.role,
-      // },
-    })
-    // return req.login(newUser, function (err) {
-    //   if (err) {
-    //     return next(new HttpError("srv_log_in_failed", 500))
-    //   }
 
-    //   return res.json({
-    //     success: true,
-    //     msg: {
-    //       isAuthenticated: req.isAuthenticated(),
-    //       email: req.user.email,
-    //       name: req.user.name,
-    //       role: req.user.role,
-    //     },
-    //   })
-    // })
+    req.login(newUser, function (err) {
+      if (err) {
+        return next(new HttpError("srv_log_in_failed", 500))
+      }
+
+      return res.json({
+        success: true,
+        msg: {
+          isAuthenticated: true,
+          email: req.user.email,
+          name: req.user.name,
+          role: req.user.role,
+        },
+      })
+    })
   } catch (error) {
     console.log(error)
     return next(new HttpError("srv_register_failed", 500))

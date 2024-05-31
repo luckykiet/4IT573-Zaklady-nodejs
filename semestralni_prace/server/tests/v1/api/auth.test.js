@@ -19,6 +19,12 @@ afterAll(async () => {
   await db.closeDatabase()
 })
 
+const logoutUser = async (cookie) => {
+  await request
+    .post(`/api/${apiVersion}/signout`)
+    .set("Cookie", cookie)
+}
+
 describe(`POST /api/${apiVersion}/register`, () => {
   test("should return 200 and register user successfully", async () => {
     const response = await request
@@ -36,6 +42,9 @@ describe(`POST /api/${apiVersion}/register`, () => {
     expect(response.body.msg.email).toBe("test@example.com")
     expect(response.body.msg.name).toBe("Test User")
     expect(response.body.msg.role).toBe("guest")
+
+    // Clear session
+    await logoutUser(response.headers["set-cookie"])
   })
 
   test("should return 200 and register user successfully", async () => {
@@ -56,6 +65,9 @@ describe(`POST /api/${apiVersion}/register`, () => {
     )
     expect(response.body.msg.name).toBe("Test User2")
     expect(response.body.msg.role).toBe("merchant")
+
+    // Clear session
+    await logoutUser(response.headers["set-cookie"])
   })
 
   test("should return 400 for invalid request body", async () => {
@@ -112,7 +124,7 @@ describe(`POST /api/${apiVersion}/register`, () => {
 
     const response = await request
       .post(`/api/${apiVersion}/register`)
-      .set("Cookie", loginResponse.headers["Set-Cookie"])
+      .set("Cookie", loginResponse.headers["set-cookie"])
       .send({
         email: "newadmin@example.com",
         password: "password123",
@@ -122,5 +134,117 @@ describe(`POST /api/${apiVersion}/register`, () => {
 
     expect(response.status).toBe(403)
     expect(response.body.msg).toBe("srv_no_privilleges")
+  })
+})
+
+describe(`POST /api/${apiVersion}/auth`, () => {
+  test("should return 200 and log in user successfully", async () => {
+    const password = await bcrypt.hash("password123", 10)
+    const user = new Users({
+      email: "login@example.com",
+      name: "Login User",
+      password,
+      role: "guest",
+    })
+    await user.save()
+
+    const response = await request
+      .post(`/api/${apiVersion}/auth`)
+      .send({
+        email: "login@example.com",
+        password: "password123",
+      })
+
+    expect(response.status).toBe(200)
+    expect(response.body.isAuthenticated).toBe(true)
+    expect(response.body.email).toBe("login@example.com")
+    expect(response.body.name).toBe("Login User")
+    expect(response.body.role).toBe("guest")
+  })
+
+  test("should return 401 for invalid login credentials", async () => {
+    const response = await request
+      .post(`/api/${apiVersion}/auth`)
+      .send({
+        email: "invalid@example.com",
+        password: "wrongpassword",
+      })
+
+    expect(response.status).toBe(401)
+  })
+})
+
+describe(`POST /api/${apiVersion}/isAuthenticated`, () => {
+  test("should return 200 and check if user is authenticated", async () => {
+    const password = await bcrypt.hash("password123", 10)
+    const user = new Users({
+      email: "check@example.com",
+      name: "Check User",
+      password,
+      role: "guest",
+    })
+    await user.save()
+
+    const loginResponse = await request
+      .post(`/api/${apiVersion}/auth`)
+      .send({
+        email: "check@example.com",
+        password: "password123",
+      })
+
+    const response = await request
+      .post(`/api/${apiVersion}/isAuthenticated`)
+      .set("Cookie", loginResponse.headers["set-cookie"])
+
+    expect(response.status).toBe(200)
+    expect(response.body.isAuthenticated).toBe(true)
+    expect(response.body.email).toBe("check@example.com")
+    expect(response.body.name).toBe("Check User")
+    expect(response.body.role).toBe("guest")
+  })
+
+  test("should return 200 and indicate user is not authenticated", async () => {
+    const response = await request.post(
+      `/api/${apiVersion}/isAuthenticated`
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.body.isAuthenticated).toBe(false)
+  })
+})
+
+describe(`POST /api/${apiVersion}/signout`, () => {
+  test("should return 200 and sign out user successfully", async () => {
+    const password = await bcrypt.hash("password123", 10)
+    const user = new Users({
+      email: "signout@example.com",
+      name: "Signout User",
+      password,
+      role: "guest",
+    })
+    await user.save()
+
+    const loginResponse = await request
+      .post(`/api/${apiVersion}/auth`)
+      .send({
+        email: "signout@example.com",
+        password: "password123",
+      })
+
+    const response = await request
+      .post(`/api/${apiVersion}/signout`)
+      .set("Cookie", loginResponse.headers["set-cookie"])
+
+    expect(response.status).toBe(200)
+    expect(response.body.success).toBe(true)
+  })
+
+  test("should return 200 and indicate user is not authenticated", async () => {
+    const response = await request.post(
+      `/api/${apiVersion}/signout`
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.body.isAuthenticated).toBe(false)
   })
 })
