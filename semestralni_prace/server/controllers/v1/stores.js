@@ -1,81 +1,75 @@
 //@ts-check
-import Store from "../../models/stores.js"
-import HttpError from "../../http-error.js"
-import mongoose from "mongoose"
-import Table from "../../models/tables.js"
+import Store from '../../models/stores.js';
+import HttpError from '../../http-error.js';
+import mongoose from 'mongoose';
+import Table from '../../models/tables.js';
 
 /**
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @param {import("express").NextFunction} next
  */
-export const fetchAvailableStores = async (
-  req,
-  res,
-  next
-) => {
-  try {
-    const { body } = req
-    const limit = body.limit || 50
-    const stores = await Store.find({
-      isAvailable: true,
-    })
-      .select("name address type openingTime")
-      .limit(limit)
-    return res.json({ success: true, msg: stores })
-  } catch (error) {
-    console.error(error)
-    return next(new HttpError("srv_error", 500))
-  }
-}
+export const fetchAvailableStores = async (req, res, next) => {
+	try {
+		const { params } = req;
+		const limit = parseInt(params.limit) || 50;
+		const stores = await Store.find({
+			isAvailable: true,
+		})
+			.select('name address type openingTime')
+			.limit(limit);
+
+		const result = [];
+		const promises = stores.map(async (store) => {
+			const tables = await Table.find({
+				storeId: store._id,
+			});
+			result.push({ ...store, tables });
+		});
+		await Promise.all(promises);
+		return res.json({ success: true, msg: result });
+	} catch (error) {
+		console.error(error);
+		return next(new HttpError('srv_error', 500));
+	}
+};
 
 /**
  * @param {import("express").Request} req
  * @param {import("express").Response} res
  * @param {import("express").NextFunction} next
  */
-export const fetchAvailableStoreWithTables = async (
-  req,
-  res,
-  next
-) => {
-  try {
-    if (
-      !mongoose.Types.ObjectId.isValid(req.body.storeId)
-    ) {
-      return res.json({
-        success: false,
-        msg: "srv_invalid_request",
-      })
-    }
+export const fetchAvailableStoreWithTables = async (req, res, next) => {
+	try {
+		if (!mongoose.Types.ObjectId.isValid(req.params.storeId)) {
+			return res.json({
+				success: false,
+				msg: 'srv_invalid_request',
+			});
+		}
 
-    const store = await Store.findOne({
-      _id: req.body.storeId,
-      isAvailable: true,
-    }).select("name address type openingTime -__v")
+		const store = await Store.findOne({
+			_id: req.params.storeId,
+			isAvailable: true,
+		}).select('name address type openingTime -__v');
 
-    if (!store) {
-      return res.json({
-        success: false,
-        msg: `srv_store_not_found`,
-      })
-    }
+		if (!store) {
+			return res.json({
+				success: false,
+				msg: `srv_store_not_found`,
+			});
+		}
 
-    const tables = await Table.find({
-      storeId: store._id,
-    })
+		const tables = await Table.find({
+			storeId: store._id,
+		});
 
-    return res.status(200).json({
-      success: true,
-      msg: { ...store.toObject(), tables },
-    })
-  } catch (error) {
-    console.log(error)
-    return next(new HttpError("srv_get_store_failed", 500))
-  }
-}
-
-// street: /^.{0,100}$/,
-// city: /^.{0,75}$/,
-// zip: /^\w{0,10}$/,
-// country: /^.{0,75}$/,
+		return res.status(200).json({
+			success: true,
+			msg: { ...store.toObject(), tables },
+		});
+	} catch (error) {
+		console.log(error);
+		return next(new HttpError('srv_get_store_failed', 500));
+	}
+};

@@ -1,8 +1,11 @@
 export const STORES = {
-  cafe: {
-    name: `misc_cafe`,
-  },
-  gastro: {
-    name: `misc_restaurant`,
-  },
-}
+	cafe: {
+		name: `misc_cafe`,
+	},
+	restaurant: {
+		name: `misc_restaurant`,
+	},
+	bistro: {
+		name: `misc_bistro`,
+	},
+};
