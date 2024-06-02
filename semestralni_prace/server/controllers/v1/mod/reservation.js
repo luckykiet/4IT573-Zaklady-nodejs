@@ -10,8 +10,6 @@ import utils from '../../../utils.js';
 
 dayjs.extend(utc);
 
-const reservationsTypes = ['all', 'incoming', 'expired', 'cancelled'];
-
 /**
  * @param {import("express").Request} req
  * @param {import("express").Response} res
@@ -19,7 +17,21 @@ const reservationsTypes = ['all', 'incoming', 'expired', 'cancelled'];
  */
 export const fetchReservationsOfStore = async (req, res, next) => {
 	try {
-		const { storeId, types, limit } = req.params;
+		const { storeId } = req.params;
+		const { types, limit } = req.query;
+
+		const validator = {
+			types: false,
+			limit: limit ? /^\d+$/ : false,
+		};
+
+		if (
+			!storeId ||
+			!mongoose.Types.ObjectId.isValid(storeId) ||
+			!utils.isValidRequest(validator, req.query)
+		) {
+			return next(new HttpError('srv_invalid_request', 400));
+		}
 
 		const limitValue =
 			limit && !isNaN(parseInt(limit)) && parseInt(limit) > 0
@@ -34,7 +46,12 @@ export const fetchReservationsOfStore = async (req, res, next) => {
 				.json({ success: false, msg: 'srv_store_not_found' });
 		}
 
-		const typesToFind = types.split(';');
+		const typesToFind = types && types.length > 0 ? types.split(';') : ['all'];
+		typesToFind.map((type) => {
+			if (!CONSTANTS.RESERVATION_FILTERS.includes(type)) {
+				return next(new HttpError('srv_invalid_request', 400));
+			}
+		});
 		const now = dayjs.utc();
 		const query = { storeId: store._id };
 
@@ -49,7 +66,9 @@ export const fetchReservationsOfStore = async (req, res, next) => {
 			if (typesToFind.includes('cancelled')) {
 				conditions.push({ isCancelled: true });
 			}
-			query.$or = conditions;
+			if (conditions.length > 0) {
+				query.$or = conditions;
+			}
 		}
 
 		const reservations = await Reservation.find(query)
@@ -69,8 +88,15 @@ export const fetchReservationsOfStore = async (req, res, next) => {
  */
 export const fetchReservationsOfAllStores = async (req, res, next) => {
 	try {
-		const { types, limit } = req.params;
+		const { types, limit } = req.query;
+		const validator = {
+			types: false,
+			limit: limit ? /^\d+$/ : false,
+		};
 
+		if (!utils.isValidRequest(validator, req.query)) {
+			return next(new HttpError('srv_invalid_request', 400));
+		}
 		const limitValue =
 			limit && !isNaN(parseInt(limit)) && parseInt(limit) > 0
 				? parseInt(limit)
@@ -79,7 +105,12 @@ export const fetchReservationsOfAllStores = async (req, res, next) => {
 		const stores = await Store.find({ userId: req.user._id });
 		const storeIds = stores.map((s) => s._id);
 
-		const typesToFind = types.split(';');
+		const typesToFind = types && types.length > 0 ? types.split(';') : ['all'];
+		typesToFind.map((type) => {
+			if (!CONSTANTS.RESERVATION_FILTERS.includes(type)) {
+				return next(new HttpError('srv_invalid_request', 400));
+			}
+		});
 		const now = dayjs.utc();
 		const query = { storeId: { $in: storeIds } };
 
@@ -94,7 +125,9 @@ export const fetchReservationsOfAllStores = async (req, res, next) => {
 			if (typesToFind.includes('cancelled')) {
 				conditions.push({ isCancelled: true });
 			}
-			query.$or = conditions;
+			if (conditions.length > 0) {
+				query.$or = conditions;
+			}
 		}
 
 		const reservations = await Reservation.find(query)
@@ -186,12 +219,23 @@ export const updateCustomerReservation = async (req, res, next) => {
 				return next(new HttpError('srv_store_close', 400));
 			}
 
-			const storeStartTime = dayjs.utc(storeOpeningTime.start, 'HH:mm');
-			const storeEndTime = dayjs.utc(storeOpeningTime.end, 'HH:mm');
+			const timeStart = dayjs.utc(storeOpeningTime.start, 'HH:mm');
+			const timeEnd = dayjs.utc(storeOpeningTime.end, 'HH:mm');
+
+			const storeStartTime = newStart
+				.clone()
+				.set('hour', timeStart.hour())
+				.set('minute', timeStart.minute());
+			const storeEndTime = newStart
+				.clone()
+				.set('hour', timeEnd.hour())
+				.set('minute', timeEnd.minute());
 
 			if (
-				!newStart.isBetween(storeStartTime, storeEndTime) ||
-				!newEnd.isBetween(storeStartTime, storeEndTime)
+				(!newStart.isBetween(storeStartTime, storeEndTime) &&
+					!newStart.isSame(storeStartTime)) ||
+				(!newEnd.isBetween(storeStartTime, storeEndTime) &&
+					!newEnd.isSame(storeEndTime))
 			) {
 				return next(new HttpError('srv_store_close', 400));
 			}

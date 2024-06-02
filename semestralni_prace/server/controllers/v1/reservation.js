@@ -1,15 +1,16 @@
+import { CONFIG } from '../../config/config.js';
+import { CONSTANTS } from '../../config/constants.js';
+import * as jwt from 'jsonwebtoken';
+import dayjs from 'dayjs';
 import HttpError from '../../http-error.js';
+import isBetween from 'dayjs/plugin/isBetween.js';
+import mongoose from 'mongoose';
 import Reservation from '../../models/reservations.js';
 import Store from '../../models/stores.js';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc.js';
-import isBetween from 'dayjs/plugin/isBetween.js';
-import utils from '../../utils.js';
-import { CONSTANTS } from '../../config/constants.js';
-import mongoose from 'mongoose';
-import * as jwt from 'jsonwebtoken';
-import { CONFIG } from '../../config/config.js';
 import Table from '../../models/tables.js';
+import utc from 'dayjs/plugin/utc.js';
+import utils from '../../utils.js';
+import Users from '../../models/users.js';
 
 dayjs.extend(utc);
 dayjs.extend(isBetween);
@@ -29,7 +30,6 @@ export const addReservation = async (req, res, next) => {
 			start: /^.{12}$/,
 			end: /^.{12}$/,
 			tableId: /^\w{24}$/,
-			storeId: /^\w{24}$/,
 		};
 
 		if (!utils.isValidRequest(validator, req.body)) {
@@ -63,12 +63,23 @@ export const addReservation = async (req, res, next) => {
 			return next(new HttpError('srv_store_close', 400));
 		}
 
-		const storeStartTime = dayjs.utc(storeOpeningTime.start, 'HH:mm');
-		const storeEndTime = dayjs.utc(storeOpeningTime.end, 'HH:mm');
+		const timeStart = dayjs.utc(storeOpeningTime.start, 'HH:mm');
+		const timeEnd = dayjs.utc(storeOpeningTime.end, 'HH:mm');
+
+		const storeStartTime = newStart
+			.clone()
+			.set('hour', timeStart.hour())
+			.set('minute', timeStart.minute());
+		const storeEndTime = newStart
+			.clone()
+			.set('hour', timeEnd.hour())
+			.set('minute', timeEnd.minute());
 
 		if (
-			!newStart.isBetween(storeStartTime, storeEndTime) ||
-			!newEnd.isBetween(storeStartTime, storeEndTime)
+			(!newStart.isBetween(storeStartTime, storeEndTime) &&
+				!newStart.isSame(storeStartTime)) ||
+			(!newEnd.isBetween(storeStartTime, storeEndTime) &&
+				!newEnd.isSame(storeEndTime))
 		) {
 			return next(new HttpError('srv_store_close', 400));
 		}
@@ -83,9 +94,11 @@ export const addReservation = async (req, res, next) => {
 			return next(new HttpError('srv_reservation_exists', 409));
 		}
 
+		const user = await Users.findOne({ email });
+
 		const newReservation = new Reservation({
-			userId: req.user._id,
-			storeId,
+			userId: user ? user._id : null,
+			storeId: store._id,
 			tableId,
 			email,
 			name,
@@ -100,7 +113,7 @@ export const addReservation = async (req, res, next) => {
 
 		return res.json({
 			success: true,
-			msg: 'Reservation created',
+			msg: 'srv_reservation_created',
 			data: newReservation,
 		});
 	} catch (error) {

@@ -129,7 +129,7 @@ app.use(apiPrefix + '/user', reservationUserRouter);
 
 app.use(apiPrefix + '/mod', merchantOrAdminOnly, storeModRouter);
 app.use(apiPrefix + '/mod', merchantOrAdminOnly, tableModRouter);
-app.use(apiPrefix + '/mod', merchantOrAdminOnly, reservationRouter);
+app.use(apiPrefix + '/mod', merchantOrAdminOnly, reservationModRouter);
 
 app.get(
 	'*',

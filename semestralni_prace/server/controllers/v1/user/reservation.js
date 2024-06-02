@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { CONSTANTS } from '../../../config/constants.js';
 import HttpError from '../../../http-error.js';
 import Reservation from '../../../models/reservations.js';
 import dayjs from 'dayjs';
@@ -15,14 +16,28 @@ const reservationsTypes = ['all', 'incoming', 'expired', 'cancelled'];
  */
 export const fetchReservationsOfUser = async (req, res, next) => {
 	try {
-		const { types, limit } = req.params;
+		const { types, limit } = req.query;
+
+		const validator = {
+			types: false,
+			limit: limit ? /^\d+$/ : false,
+		};
+
+		if (!utils.isValidRequest(validator, req.query)) {
+			return next(new HttpError('srv_invalid_request', 400));
+		}
 
 		const limitValue =
 			limit && !isNaN(parseInt(limit)) && parseInt(limit) > 0
 				? parseInt(limit)
 				: 50;
 
-		const typesToFind = types.split(';');
+		const typesToFind = types && types.length > 0 ? types.split(';') : ['all'];
+		typesToFind.map((type) => {
+			if (!CONSTANTS.RESERVATION_FILTERS.includes(type)) {
+				return next(new HttpError('srv_invalid_request', 400));
+			}
+		});
 		const now = dayjs.utc();
 		const query = { userId: req.user._id };
 
@@ -37,7 +52,9 @@ export const fetchReservationsOfUser = async (req, res, next) => {
 			if (typesToFind.includes('cancelled')) {
 				conditions.push({ isCancelled: true });
 			}
-			query.$or = conditions;
+			if (conditions.length > 0) {
+				query.$or = conditions;
+			}
 		}
 
 		const reservations = await Reservation.find(query)

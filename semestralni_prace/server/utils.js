@@ -14,7 +14,7 @@ const addSpaceForTelephoneNumber = (string, clearPrefix = false) => {
 	}
 };
 
-const isValidRequest = (validator, request, endpoint) => {
+const isValidRequest = (validator, request) => {
 	if (!request) {
 		console.log('srv_missing_request');
 		return false;
@@ -23,19 +23,8 @@ const isValidRequest = (validator, request, endpoint) => {
 	const validKeys = Object.keys(validator);
 	const testKeys = Object.keys(request);
 
-	// Check if request has all necessary keys and no extra keys
-	if (validKeys.length > testKeys.length) {
-		console.log(
-			endpoint,
-			'srv_missing_keys',
-			validKeys.filter((key) => !(key in request))
-		);
-		return false;
-	}
-
 	if (testKeys.some((key) => !validKeys.includes(key))) {
 		console.log(
-			endpoint,
 			'srv_extra_keys',
 			testKeys.filter((key) => !validKeys.includes(key))
 		);
@@ -44,30 +33,25 @@ const isValidRequest = (validator, request, endpoint) => {
 
 	// Validate each key
 	for (let validKey of validKeys) {
-		if (!(validKey in request)) {
-			console.log(endpoint, 'srv_missing_key', validKey);
-			return false;
-		}
-
-		if (validKey === false) {
-			return true;
-		}
 		const validatorFunction = validator[validKey];
 		const requestValue = request[validKey];
 
+		if (typeof validatorFunction === 'boolean') {
+			return true;
+		}
+
+		if (!(validKey in request)) {
+			console.log('srv_missing_key', validKey);
+			return false;
+		}
+
 		if (typeof validatorFunction === 'function') {
 			if (!validatorFunction(requestValue)) {
-				console.log(
-					endpoint,
-					'srv_invalid_format_function',
-					validKey,
-					requestValue
-				);
+				console.log('srv_invalid_format_function', validKey, requestValue);
 				return false;
 			}
 		} else if (!validatorFunction.test(requestValue)) {
 			console.log(
-				endpoint,
 				'srv_invalid_format_key_value',
 				validKey,
 				validatorFunction,
