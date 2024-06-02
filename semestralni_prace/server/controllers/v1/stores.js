@@ -12,7 +12,12 @@ import Table from '../../models/tables.js';
 export const fetchAvailableStores = async (req, res, next) => {
 	try {
 		const { params } = req;
-		const limit = parseInt(params.limit) || 50;
+		const limit =
+			params.limit &&
+			!isNaN(parseInt(params.limit)) &&
+			parseInt(params.limit) > 0
+				? parseInt(params.limit)
+				: 50;
 		const stores = await Store.find({
 			isAvailable: true,
 		})

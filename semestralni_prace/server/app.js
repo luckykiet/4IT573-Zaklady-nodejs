@@ -15,6 +15,9 @@ import { CONFIG } from './config/config.js';
 import { fileURLToPath } from 'url';
 import { router as pingRouter } from './routes/api/v1/ping.js';
 import { router as storeRouter } from './routes/api/v1/stores.js';
+import { router as reservationRouter } from './routes/api/v1/reservation.js';
+import { router as reservationModRouter } from './routes/api/v1/mod/reservation.js';
+import { router as reservationUserRouter } from './routes/api/v1/user/reservation.js';
 import { router as storeModRouter } from './routes/api/v1/mod/stores.js';
 import { router as tableModRouter } from './routes/api/v1/mod/tables.js';
 import { router as authRouter } from './routes/api/v1/auth.js';
@@ -119,10 +122,14 @@ const apiPrefix = '/api/v1';
 app.use(apiPrefix, pingRouter);
 app.use(apiPrefix, authRouter);
 app.use(apiPrefix, storeRouter);
+app.use(apiPrefix, reservationRouter);
 
 app.use(apiPrefix, ensureAuthenticated);
+app.use(apiPrefix + '/user', reservationUserRouter);
+
 app.use(apiPrefix + '/mod', merchantOrAdminOnly, storeModRouter);
 app.use(apiPrefix + '/mod', merchantOrAdminOnly, tableModRouter);
+app.use(apiPrefix + '/mod', merchantOrAdminOnly, reservationRouter);
 
 app.get(
 	'*',

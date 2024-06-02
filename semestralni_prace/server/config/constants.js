@@ -1,0 +1,3 @@
+export const CONSTANTS = {
+	RESERVATION_TIME_FORMAT: 'YYYYMMDDHHmm',
+};
