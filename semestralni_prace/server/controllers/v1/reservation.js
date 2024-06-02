@@ -11,6 +11,12 @@ import Table from '../../models/tables.js';
 import utc from 'dayjs/plugin/utc.js';
 import utils from '../../utils.js';
 import Users from '../../models/users.js';
+import {
+	sendCancellationEmail,
+	sendCancelReservationTokenEmail,
+	sendConfirmationEmail,
+} from '../../mailer.js';
+
 const { sign, decode, verify } = jwt;
 dayjs.extend(utc);
 dayjs.extend(isBetween);
@@ -109,7 +115,22 @@ export const addReservation = async (req, res, next) => {
 
 		await newReservation.save();
 
-		// TODO: Send confirmation email
+		if (process.env.NODE_ENV !== 'TEST') {
+			try {
+				await sendConfirmationEmail({
+					email,
+					reservation: {
+						...newReservation.toObject(),
+						start: newStart.format('DD/MM/YYYY HH:mm'),
+						end: newEnd.format('DD/MM/YYYY HH:mm'),
+					},
+					store,
+					table,
+				});
+			} catch (error) {
+				console.log(error);
+			}
+		}
 
 		return res.json({
 			success: true,
@@ -144,10 +165,45 @@ export const sendReservationToken = async (req, res, next) => {
 			return next(new HttpError('srv_reservation_already_cancelled', 400));
 		}
 
-		// TODO: Send cancellation token email
+		const store = await Store.findOne({
+			_id: reservation.storeId,
+		});
+
+		if (!store) {
+			return next(new HttpError('srv_store_not_found', 404));
+		}
+
+		const table = await Table.findOne({
+			_id: reservation.tableId,
+			storeId: store._id,
+		});
+
+		if (!table) {
+			return next(new HttpError('srv_table_not_found', 404));
+		}
+
 		const token = sign({ reservationId }, CONFIG.JWT_SECRET, {
 			expiresIn: '30m',
 		});
+
+		if (process.env.NODE_ENV !== 'TEST') {
+			try {
+				await sendCancelReservationTokenEmail({
+					email: reservation.email,
+					reservation: {
+						...reservation.toObject(),
+						start: newStart.format('DD/MM/YYYY HH:mm'),
+						end: newEnd.format('DD/MM/YYYY HH:mm'),
+					},
+					store,
+					table,
+					token,
+				});
+			} catch (error) {
+				console.log(error);
+			}
+		}
+
 		return res.json({ success: true, msg: token });
 	} catch (error) {
 		console.error(error);
@@ -194,13 +250,45 @@ export const cancelReservation = async (req, res, next) => {
 			return next(new HttpError('srv_reservation_already_cancelled', 400));
 		}
 
+		const store = await Store.findOne({
+			_id: reservation.storeId,
+		});
+
+		if (!store) {
+			return next(new HttpError('srv_store_not_found', 404));
+		}
+
+		const table = await Table.findOne({
+			_id: reservation.tableId,
+			storeId: store._id,
+		});
+
+		if (!table) {
+			return next(new HttpError('srv_table_not_found', 404));
+		}
+
 		await Reservation.findByIdAndUpdate(reservation._id, {
 			$set: {
 				isCancelled: true,
 			},
 		});
 
-		// TODO: Send cancellation email
+		if (process.env.NODE_ENV !== 'TEST') {
+			try {
+				await sendCancellationEmail({
+					email: reservation.email,
+					reservation: {
+						...reservation.toObject(),
+						start: newStart.format('DD/MM/YYYY HH:mm'),
+						end: newEnd.format('DD/MM/YYYY HH:mm'),
+					},
+					store,
+					table,
+				});
+			} catch (error) {
+				console.log(error);
+			}
+		}
 
 		return res.json({ success: true, msg: 'srv_reservation_cancelled' });
 	} catch (error) {

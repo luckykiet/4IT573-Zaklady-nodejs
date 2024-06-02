@@ -7,6 +7,8 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import { CONSTANTS } from '../../../config/constants.js';
 import utils from '../../../utils.js';
+import Tables from '../../../models/tables.js';
+import { sendCancelReservationTokenEmail } from '../../../mailer.js';
 
 dayjs.extend(utc);
 
@@ -186,6 +188,15 @@ export const updateCustomerReservation = async (req, res, next) => {
 			return next(new HttpError('srv_not_authorized', 403));
 		}
 
+		let table = await Tables.findOne({
+			_id: reservation.tableId,
+			storeId: store._id,
+		});
+
+		if (!table) {
+			return next(new HttpError('srv_not_authorized', 403));
+		}
+
 		if (isCancelled === true) {
 			reservation.isCancelled = true;
 		} else {
@@ -251,7 +262,13 @@ export const updateCustomerReservation = async (req, res, next) => {
 					return next(new HttpError('srv_reservation_exists', 409));
 				}
 
-				if (tableId) reservation.tableId = tableId;
+				if (tableId) {
+					table = await Tables.findById(tableId);
+					if (!table || !table.isAvailable) {
+						return next(new HttpError('srv_table_not_found', 404));
+					}
+					reservation.tableId = tableId;
+				}
 				if (start) reservation.start = newStart.toDate();
 				if (end) reservation.end = newEnd.toDate();
 			}
@@ -268,7 +285,24 @@ export const updateCustomerReservation = async (req, res, next) => {
 		}
 
 		await reservation.save();
-		// TODO send new email
+
+		if (process.env.NODE_ENV !== 'TEST') {
+			try {
+				await sendConfirmationEmail({
+					email: reservation.email,
+					reservation: {
+						...reservation.toObject(),
+						start: newStart.format('DD/MM/YYYY HH:mm'),
+						end: newEnd.format('DD/MM/YYYY HH:mm'),
+					},
+					store,
+					table,
+				});
+			} catch (error) {
+				console.log(error);
+			}
+		}
+
 		return res.json({
 			success: true,
 			msg: reservation,
@@ -307,10 +341,33 @@ export const deleteReservation = async (req, res, next) => {
 			return next(new HttpError('srv_not_authorized', 403));
 		}
 
+		const table = await Tables.findOne({
+			_id: reservation.tableId,
+			storeId: store._id,
+		});
+
+		if (!table) {
+			return next(new HttpError('srv_table_not_found', 404));
+		}
+
 		await Reservation.findByIdAndDelete(reservation._id);
 
-		// TODO: Send cancellation email
-
+		if (process.env.NODE_ENV !== 'TEST') {
+			try {
+				await sendCancellationEmail({
+					email: reservation.email,
+					reservation: {
+						...reservation.toObject(),
+						start: newStart.format('DD/MM/YYYY HH:mm'),
+						end: newEnd.format('DD/MM/YYYY HH:mm'),
+					},
+					store,
+					table,
+				});
+			} catch (error) {
+				console.log(error);
+			}
+		}
 		return res.json({ success: true, msg: 'srv_reservation_deleted' });
 	} catch (error) {
 		console.error(error);

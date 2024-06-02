@@ -35,6 +35,7 @@ describe(`Reservation merchant on opened store`, () => {
 		store2,
 		table,
 		table2,
+		table3,
 		reservation,
 		reservation2,
 		cookie;
@@ -105,6 +106,12 @@ describe(`Reservation merchant on opened store`, () => {
 			person: 2,
 			isAvailable: true,
 			storeId: store2._id,
+		});
+		table3 = await Tables.create({
+			name: 'Test Table 3',
+			person: 2,
+			isAvailable: false,
+			storeId: store._id,
 		});
 
 		// Login user
@@ -213,7 +220,7 @@ describe(`Reservation merchant on opened store`, () => {
 		expect(response.body.msg).toHaveProperty('end');
 	});
 
-	test('should block reservation because existents', async () => {
+	test('should block update reservation because existents', async () => {
 		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
 		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
 
@@ -240,7 +247,34 @@ describe(`Reservation merchant on opened store`, () => {
 		expect(response.status).toBe(409);
 		expect(response.body.success).toBe(false);
 	});
+	test('should block update reservation because table not available', async () => {
+		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
+		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
 
+		const reser = await Reservations.create({
+			userId: user._id,
+			storeId: store._id,
+			tableId: table._id,
+			email: 'reservation@example.com',
+			name: 'Reservation Name',
+			start: newStart.toDate(),
+			end: newEnd.toDate(),
+			isCancelled: false,
+		});
+
+		const response = await request
+			.put(`/api/${apiVersion}/mod/reservation`)
+			.set('Cookie', cookie)
+			.send({
+				reservationId: reser._id.toString(),
+				tableId: table3._id.toString(),
+				start: newStart.format(CONSTANTS.RESERVATION_TIME_FORMAT),
+				end: newEnd.format(CONSTANTS.RESERVATION_TIME_FORMAT),
+			});
+
+		expect(response.status).toBe(404);
+		expect(response.body.success).toBe(false);
+	});
 	test('should get wrong time', async () => {
 		const newStart = dayjs
 			.utc()
