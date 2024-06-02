@@ -8,8 +8,6 @@ import utils from '../../../utils.js';
 
 dayjs.extend(utc);
 
-const reservationsTypes = ['all', 'incoming', 'expired', 'cancelled'];
-
 /**
  * @param {import("express").Request} req
  * @param {import("express").Response} res

@@ -3,3 +3,4 @@ unplugged
 install-state.gz
 .pnp.cjs
 .pnp.loader.mjs
+config.js
