@@ -128,7 +128,7 @@ describe(`Reservation merchant on opened store`, () => {
 			name: 'Reservation Name',
 			start: dayjs.utc(start, 'YYYYMMDDHHmm').toDate(),
 			end: dayjs.utc(end, 'YYYYMMDDHHmm').toDate(),
-			isCancelled: false,
+			isCancelled: true,
 		});
 	});
 
@@ -285,6 +285,15 @@ describe(`Reservation merchant on opened store`, () => {
 		expect(decoded.reservationId).toBe(reservation._id.toString());
 	});
 
+	test('should check cancelled reservation', async () => {
+		const response = await request.get(
+			`/api/${apiVersion}/reservation/cancelRequest/${reservation2._id}`
+		);
+
+		expect(response.status).toBe(400);
+		expect(response.body.success).toBe(false);
+	});
+
 	test('should cancel a reservation', async () => {
 		const token = jwt.sign(
 			{ reservationId: reservation._id },
@@ -304,5 +313,22 @@ describe(`Reservation merchant on opened store`, () => {
 
 		const cancelledReservation = await Reservations.findById(reservation._id);
 		expect(cancelledReservation.isCancelled).toBe(true);
+	});
+
+	test('should check canceled reservation', async () => {
+		const token = jwt.sign(
+			{ reservationId: reservation2._id },
+			CONFIG.JWT_SECRET,
+			{
+				expiresIn: '30m',
+			}
+		);
+
+		const response = await request.put(
+			`/api/${apiVersion}/reservation/cancel/${token}`
+		);
+
+		expect(response.status).toBe(400);
+		expect(response.body.success).toBe(false);
 	});
 });
