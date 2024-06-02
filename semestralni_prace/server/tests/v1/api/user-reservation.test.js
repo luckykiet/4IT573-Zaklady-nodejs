@@ -7,7 +7,6 @@ import bcrypt from 'bcryptjs';
 import * as db from '../../db.js';
 import dayjs from 'dayjs';
 import Tables from '../../../models/tables.js';
-import { CONSTANTS } from '../../../config/constants.js';
 
 const apiVersion = 'v1';
 const request = supertest(app);

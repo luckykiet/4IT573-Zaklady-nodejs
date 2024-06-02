@@ -1,6 +1,6 @@
 import { CONFIG } from '../../config/config.js';
 import { CONSTANTS } from '../../config/constants.js';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import dayjs from 'dayjs';
 import HttpError from '../../http-error.js';
 import isBetween from 'dayjs/plugin/isBetween.js';
@@ -11,7 +11,7 @@ import Table from '../../models/tables.js';
 import utc from 'dayjs/plugin/utc.js';
 import utils from '../../utils.js';
 import Users from '../../models/users.js';
-
+const { sign, decode, verify } = jwt;
 dayjs.extend(utc);
 dayjs.extend(isBetween);
 
@@ -113,8 +113,7 @@ export const addReservation = async (req, res, next) => {
 
 		return res.json({
 			success: true,
-			msg: 'srv_reservation_created',
-			data: newReservation,
+			msg: newReservation,
 		});
 	} catch (error) {
 		console.error(error);
@@ -129,7 +128,7 @@ export const addReservation = async (req, res, next) => {
  */
 export const sendReservationToken = async (req, res, next) => {
 	try {
-		const { reservationId } = req.body;
+		const { reservationId } = req.params;
 
 		if (!reservationId || !mongoose.Types.ObjectId.isValid(reservationId)) {
 			return next(new HttpError('srv_invalid_request', 400));
@@ -141,8 +140,12 @@ export const sendReservationToken = async (req, res, next) => {
 			return next(new HttpError('srv_reservation_not_found', 404));
 		}
 
+		if (reservation.isCancelled) {
+			return next(new HttpError('srv_reservation_already_cancelled', 400));
+		}
+
 		// TODO: Send cancellation token email
-		const token = jwt.sign({ reservationId }, CONFIG.JWT_SECRET, {
+		const token = sign({ reservationId }, CONFIG.JWT_SECRET, {
 			expiresIn: '30m',
 		});
 		return res.json({ success: true, msg: token });
@@ -166,28 +169,36 @@ export const cancelReservation = async (req, res, next) => {
 		}
 
 		try {
-			jwt.verify(token, CONFIG.JWT_SECRET);
+			verify(token, CONFIG.JWT_SECRET);
 		} catch (error) {
 			console.log(error);
 			return next(new HttpError('srv_token_expired', 400));
 		}
 
-		const decode = jwt.decode(token);
+		const decoded = decode(token);
 
 		if (
-			!decode.reservationId ||
-			!mongoose.Types.ObjectId.isValid(decode.reservationId)
+			!decoded.reservationId ||
+			!mongoose.Types.ObjectId.isValid(decoded.reservationId)
 		) {
 			return next(new HttpError('srv_invalid_request', 400));
 		}
 
-		const reservation = await Reservation.findById(decode.reservationId);
+		const reservation = await Reservation.findById(decoded.reservationId);
 
 		if (!reservation) {
 			return next(new HttpError('srv_reservation_not_found', 404));
 		}
 
-		await Reservation.findByIdAndDelete(reservation._id);
+		if (reservation.isCancelled) {
+			return next(new HttpError('srv_reservation_already_cancelled', 400));
+		}
+
+		await Reservation.findByIdAndUpdate(reservation._id, {
+			$set: {
+				isCancelled: true,
+			},
+		});
 
 		// TODO: Send cancellation email
 
