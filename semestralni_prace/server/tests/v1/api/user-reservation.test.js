@@ -155,145 +155,9 @@ describe(`Reservation merchant on opened store`, () => {
 		await logoutUser(cookie);
 	});
 
-	test('should update a reservation successfully', async () => {
-		const newStart = dayjs
-			.utc()
-			.add(1, 'day')
-			.set('hour', 17)
-			.set('minute', 0)
-			.format('YYYYMMDDHHmm');
-		const newEnd = dayjs
-			.utc()
-			.add(1, 'day')
-			.set('hour', 18)
-			.set('minute', 0)
-			.format('YYYYMMDDHHmm');
-
+	test('should fetch reservations of a user', async () => {
 		const response = await request
-			.put(`/api/${apiVersion}/mod/reservation`)
-			.set('Cookie', cookie)
-			.send({
-				reservationId: reservation._id.toString(),
-				start: newStart,
-				end: newEnd,
-			});
-
-		expect(response.status).toBe(200);
-		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toHaveProperty('start');
-		expect(response.body.msg).toHaveProperty('end');
-	});
-
-	test('should update a reservation successfully', async () => {
-		const newStart = dayjs
-			.utc()
-			.add(1, 'day')
-			.set('hour', 18)
-			.set('minute', 0)
-			.format('YYYYMMDDHHmm');
-		const newEnd = dayjs
-			.utc()
-			.add(1, 'day')
-			.set('hour', 19)
-			.set('minute', 0)
-			.format('YYYYMMDDHHmm');
-
-		const response = await request
-			.put(`/api/${apiVersion}/mod/reservation`)
-			.set('Cookie', cookie)
-			.send({
-				reservationId: reservation._id.toString(),
-				start: newStart,
-				end: newEnd,
-				isCancelled: true,
-			});
-		expect(response.status).toBe(200);
-		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toHaveProperty('start');
-		expect(response.body.msg).toHaveProperty('end');
-	});
-
-	test('should block reservation because existents', async () => {
-		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
-		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
-
-		await Reservations.create({
-			userId: user._id,
-			storeId: store._id,
-			tableId: table._id,
-			email: 'reservation@example.com',
-			name: 'Reservation Name',
-			start: newStart.toDate(),
-			end: newEnd.toDate(),
-			isCancelled: false,
-		});
-
-		const response = await request
-			.put(`/api/${apiVersion}/mod/reservation`)
-			.set('Cookie', cookie)
-			.send({
-				reservationId: reservation._id.toString(),
-				start: newStart.format(CONSTANTS.RESERVATION_TIME_FORMAT),
-				end: newEnd.format(CONSTANTS.RESERVATION_TIME_FORMAT),
-			});
-
-		expect(response.status).toBe(409);
-		expect(response.body.success).toBe(false);
-	});
-
-	test('should get wrong time', async () => {
-		const newStart = dayjs
-			.utc()
-			.add(1, 'day')
-			.set('hour', 16)
-			.set('minute', 0)
-			.format('YYYYMMDDHHmm');
-		const newEnd = dayjs
-			.utc()
-			.add(1, 'day')
-			.set('hour', 13)
-			.set('minute', 0)
-			.format('YYYYMMDDHHmm');
-
-		const response = await request
-			.put(`/api/${apiVersion}/mod/reservation`)
-			.set('Cookie', cookie)
-			.send({
-				reservationId: reservation._id.toString(),
-				start: newStart,
-				end: newEnd,
-			});
-
-		expect(response.status).toBe(400);
-		expect(response.body.success).toBe(false);
-	});
-
-	test('should delete a reservation successfully', async () => {
-		const response = await request
-			.delete(
-				`/api/${apiVersion}/mod/reservation/${reservation._id.toString()}`
-			)
-			.set('Cookie', cookie);
-
-		expect(response.status).toBe(200);
-		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toBe('srv_reservation_deleted');
-	});
-
-	test('should prevent a reservation to be deleted', async () => {
-		const response = await request
-			.delete(
-				`/api/${apiVersion}/mod/reservation/${reservation2._id.toString()}`
-			)
-			.set('Cookie', cookie);
-
-		expect(response.status).toBe(403);
-		expect(response.body.success).toBe(false);
-	});
-
-	test('should fetch reservations of a store', async () => {
-		const response = await request
-			.get(`/api/${apiVersion}/mod/reservations/store/${store._id.toString()}`)
+			.get(`/api/${apiVersion}/user/reservations`)
 			.set('Cookie', cookie);
 
 		expect(response.status).toBe(200);
@@ -301,27 +165,7 @@ describe(`Reservation merchant on opened store`, () => {
 		expect(response.body.msg).toHaveLength(1);
 	});
 
-	test('should prevent fetch reservations of a store 2', async () => {
-		const response = await request
-			.get(`/api/${apiVersion}/mod/reservations/store/${store2._id.toString()}`)
-			.set('Cookie', cookie);
-
-		expect(response.status).toBe(404);
-		expect(response.body.success).toBe(false);
-	});
-
-	test('should fetch reservations of all stores', async () => {
-		const response = await request
-			.get(`/api/${apiVersion}/mod/reservations`)
-			.set('Cookie', cookie);
-
-		expect(response.status).toBe(200);
-		expect(response.body.success).toBe(true);
-		expect(response.body.msg.reservations).toHaveLength(1);
-		expect(response.body.msg.stores).toHaveLength(1);
-	});
-
-	test('should fetch 2 reservations of all stores', async () => {
+	test('should fetch 2 of all reservations', async () => {
 		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
 		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
 
@@ -348,14 +192,13 @@ describe(`Reservation merchant on opened store`, () => {
 		});
 
 		const response = await request
-			.get(`/api/${apiVersion}/mod/reservations`)
+			.get(`/api/${apiVersion}/user/reservations`)
 			.query({ limit: 2 })
 			.set('Cookie', cookie);
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg.reservations).toHaveLength(2);
-		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg).toHaveLength(2);
 	});
 
 	test('should fetch 2 reservations of incoming stores', async () => {
@@ -396,14 +239,13 @@ describe(`Reservation merchant on opened store`, () => {
 		});
 
 		const response = await request
-			.get(`/api/${apiVersion}/mod/reservations`)
+			.get(`/api/${apiVersion}/user/reservations`)
 			.query({ limit: 2, types: 'incoming' })
 			.set('Cookie', cookie);
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg.reservations).toHaveLength(2);
-		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg).toHaveLength(2);
 	});
 
 	test('should fetch 2 reservations of cancelled stores', async () => {
@@ -444,14 +286,13 @@ describe(`Reservation merchant on opened store`, () => {
 		});
 
 		const response = await request
-			.get(`/api/${apiVersion}/mod/reservations`)
+			.get(`/api/${apiVersion}/user/reservations`)
 			.query({ limit: 2, types: 'cancelled' })
 			.set('Cookie', cookie);
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg.reservations).toHaveLength(2);
-		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg).toHaveLength(2);
 	});
 
 	test('should fetch 3 reservations of expired and cancelled stores', async () => {
@@ -470,7 +311,7 @@ describe(`Reservation merchant on opened store`, () => {
 		});
 
 		await Reservations.create({
-			userId: null,
+			userId: user._id,
 			storeId: store._id,
 			tableId: table._id,
 			email: 'reservation@example.com',
@@ -479,6 +320,44 @@ describe(`Reservation merchant on opened store`, () => {
 			end: newEnd.toDate(),
 			isCancelled: false,
 		});
+
+		await Reservations.create({
+			userId: user._id,
+			storeId: store._id,
+			tableId: table._id,
+			email: 'reservation@example.com',
+			name: 'Reservation Name',
+			start: newStart.toDate(),
+			end: newEnd.toDate(),
+			isCancelled: true,
+		});
+
+		await Reservations.create({
+			userId: user._id,
+			storeId: store._id,
+			tableId: table._id,
+			email: 'reservation@example.com',
+			name: 'Reservation Name',
+			start: newStart.subtract(10, 'days').toDate(),
+			end: newEnd.subtract(10, 'days').toDate(),
+			isCancelled: false,
+		});
+
+		const response = await request
+			.get(`/api/${apiVersion}/user/reservations`)
+			.query({ limit: 3, types: 'cancelled;expired' })
+			.set('Cookie', cookie);
+
+		expect(response.status).toBe(200);
+		expect(response.body.success).toBe(true);
+		expect(response.body.msg).toHaveLength(3);
+		response.body.msg.forEach((reservation) => {
+			expect(reservation.userId).toBe(user._id.toString());
+		});
+	});
+	test('should fetch 1 own reservation', async () => {
+		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
+		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
 
 		await Reservations.create({
 			userId: user2._id,
@@ -497,19 +376,43 @@ describe(`Reservation merchant on opened store`, () => {
 			tableId: table._id,
 			email: 'reservation@example.com',
 			name: 'Reservation Name',
+			start: newStart.toDate(),
+			end: newEnd.toDate(),
+			isCancelled: false,
+		});
+
+		await Reservations.create({
+			userId: null,
+			storeId: store._id,
+			tableId: table._id,
+			email: 'reservation@example.com',
+			name: 'Reservation Name',
+			start: newStart.toDate(),
+			end: newEnd.toDate(),
+			isCancelled: true,
+		});
+
+		await Reservations.create({
+			userId: user2._id,
+			storeId: store._id,
+			tableId: table._id,
+			email: 'reservation@example.com',
+			name: 'Reservation Name',
 			start: newStart.subtract(10, 'days').toDate(),
 			end: newEnd.subtract(10, 'days').toDate(),
 			isCancelled: false,
 		});
 
 		const response = await request
-			.get(`/api/${apiVersion}/mod/reservations`)
-			.query({ limit: 3, types: 'cancelled;expired' })
+			.get(`/api/${apiVersion}/user/reservations`)
+			.query({ limit: 3, types: 'all' })
 			.set('Cookie', cookie);
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg.reservations).toHaveLength(3);
-		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg).toHaveLength(1);
+		response.body.msg.forEach((reservation) => {
+			expect(reservation.userId).toBe(user._id.toString());
+		});
 	});
 });
