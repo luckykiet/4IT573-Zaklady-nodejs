@@ -41,9 +41,7 @@ export const fetchReservationsOfStore = async (req, res, next) => {
 		const store = await Store.findOne({ _id: storeId, userId: req.user._id });
 
 		if (!store) {
-			return res
-				.status(404)
-				.json({ success: false, msg: 'srv_store_not_found' });
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		const typesToFind = types && types.length > 0 ? types.split(';') : ['all'];

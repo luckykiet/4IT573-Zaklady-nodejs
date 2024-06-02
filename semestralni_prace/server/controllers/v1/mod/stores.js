@@ -46,10 +46,7 @@ export const fetchOwnStores = async (req, res, next) => {
 export const fetchUserStoreWithTables = async (req, res, next) => {
 	try {
 		if (!mongoose.Types.ObjectId.isValid(req.params.storeId)) {
-			return res.json({
-				success: false,
-				msg: 'srv_invalid_request',
-			});
+			return next(new HttpError('srv_invalid_request', 400));
 		}
 
 		const store = await Store.findOne({
@@ -59,10 +56,7 @@ export const fetchUserStoreWithTables = async (req, res, next) => {
 		}).select('-__v');
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: `srv_store_not_found`,
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		const tables = await Table.find({
@@ -88,11 +82,30 @@ export const updateStore = async (req, res, next) => {
 	try {
 		const { storeId, name, address, type, openingTime, isAvailable } = req.body;
 
+		const addressValidator = {
+			street: address ? /^.{0,100}$/ : false,
+			city: address ? /^.{0,75}$/ : false,
+			zip: address ? /^\w{0,5}$/ : false,
+			country: address ? /^.{0,75}$/ : false,
+		};
+
+		if (!utils.isValidRequest(addressValidator, req.body.address)) {
+			return next(new HttpError('srv_invalid_request', 400));
+		}
+		const validator = {
+			storeId: /^\w{24}$/,
+			name: name ? /^.{3,100}$/ : false,
+			type: type ? utils.createEnumRegex(Object.keys(STORES)) : false,
+			address: false,
+			isAvailable: isAvailable ? utils.createEnumRegex([true, false]) : false,
+		};
+
+		if (!utils.isValidRequest(validator, req.body)) {
+			return next(new HttpError('srv_invalid_request', 400));
+		}
+
 		if (!mongoose.Types.ObjectId.isValid(storeId)) {
-			return res.json({
-				success: false,
-				msg: 'srv_invalid_request',
-			});
+			return next(new HttpError('srv_invalid_request', 400));
 		}
 		const store = await Store.findOne({
 			_id: storeId,
@@ -100,10 +113,7 @@ export const updateStore = async (req, res, next) => {
 		});
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: 'srv_store_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		store.name = name || store.name;
@@ -191,10 +201,7 @@ export const deleteStore = async (req, res, next) => {
 		const { storeId } = req.params;
 
 		if (!mongoose.Types.ObjectId.isValid(storeId)) {
-			return res.json({
-				success: false,
-				msg: 'srv_invalid_request',
-			});
+			return next(new HttpError('srv_invalid_request', 400));
 		}
 		let tables = [];
 		const store = await Store.findOne({
@@ -203,10 +210,7 @@ export const deleteStore = async (req, res, next) => {
 		});
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: 'srv_store_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 		tables = await Table.find({ storeId: store._id });
 

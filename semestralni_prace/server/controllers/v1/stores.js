@@ -47,10 +47,7 @@ export const fetchAvailableStores = async (req, res, next) => {
 export const fetchAvailableStoreWithTables = async (req, res, next) => {
 	try {
 		if (!mongoose.Types.ObjectId.isValid(req.params.storeId)) {
-			return res.json({
-				success: false,
-				msg: 'srv_invalid_request',
-			});
+			return next(new HttpError('srv_invalid_request', 400));
 		}
 
 		const store = await Store.findOne({
@@ -59,10 +56,7 @@ export const fetchAvailableStoreWithTables = async (req, res, next) => {
 		}).select('name address type openingTime -__v');
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: `srv_store_not_found`,
-			});
+			return next(new HttpError('srv_invalid_request', 404));
 		}
 
 		const tables = await Table.find({

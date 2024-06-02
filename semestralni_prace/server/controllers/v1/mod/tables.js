@@ -20,10 +20,7 @@ export const fetchTablesOfStore = async (req, res, next) => {
 		});
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: 'srv_store_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		const tables = await Table.find({ storeId: store._id });
@@ -44,18 +41,12 @@ export const fetchTable = async (req, res, next) => {
 		const { tableId } = req.params;
 
 		if (!mongoose.Types.ObjectId.isValid(tableId)) {
-			return res.json({
-				success: false,
-				msg: 'srv_invalid_request',
-			});
+			return next(new HttpError('srv_invalid_request', 400));
 		}
 		const table = await Table.findById(tableId);
 
 		if (!table) {
-			return res.json({
-				success: false,
-				msg: 'srv_table_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 		const store = await Store.findOne({
 			_id: table.storeId,
@@ -63,10 +54,7 @@ export const fetchTable = async (req, res, next) => {
 		});
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: 'srv_table_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		return res.status(200).json({
@@ -107,10 +95,7 @@ export const updateTable = async (req, res, next) => {
 		});
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: 'srv_store_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		const table = await Table.findOne({
@@ -118,10 +103,7 @@ export const updateTable = async (req, res, next) => {
 		});
 
 		if (!table) {
-			return res.json({
-				success: false,
-				msg: 'srv_table_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		table.name = name || table.name;
@@ -168,10 +150,7 @@ export const addTable = async (req, res, next) => {
 		});
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: 'srv_store_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		const newTable = new Table({
@@ -203,18 +182,12 @@ export const deleteTable = async (req, res, next) => {
 		const { tableId } = req.params;
 
 		if (!mongoose.Types.ObjectId.isValid(tableId)) {
-			return res.json({
-				success: false,
-				msg: 'srv_invalid_request',
-			});
+			return next(new HttpError('srv_invalid_request', 400));
 		}
 		const table = await Table.findById(tableId);
 
 		if (!table) {
-			return res.json({
-				success: false,
-				msg: 'srv_table_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 		const store = await Store.findOne({
 			_id: table.storeId,
@@ -222,10 +195,7 @@ export const deleteTable = async (req, res, next) => {
 		});
 
 		if (!store) {
-			return res.json({
-				success: false,
-				msg: 'srv_table_not_found',
-			});
+			return next(new HttpError('srv_store_not_found', 404));
 		}
 
 		await Table.findOneAndDelete(tableId);

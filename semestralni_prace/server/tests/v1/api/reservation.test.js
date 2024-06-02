@@ -26,7 +26,15 @@ afterAll(async () => {
 });
 
 describe(`Reservation merchant on opened store`, () => {
-	let user, user2, store, store2, table, table2, reservation, reservation2;
+	let user,
+		user2,
+		store,
+		store2,
+		table,
+		table2,
+		table3,
+		reservation,
+		reservation2;
 
 	beforeEach(async () => {
 		// Create a user and store
@@ -77,7 +85,7 @@ describe(`Reservation merchant on opened store`, () => {
 				.map(() => ({
 					start: '08:00',
 					end: '20:00',
-					isOpen: true,
+					isOpen: false,
 				})),
 			isAvailable: true,
 		});
@@ -94,6 +102,13 @@ describe(`Reservation merchant on opened store`, () => {
 			person: 2,
 			isAvailable: true,
 			storeId: store2._id,
+		});
+
+		table3 = await Tables.create({
+			name: 'Test Table 3',
+			person: 2,
+			isAvailable: false,
+			storeId: store._id,
 		});
 
 		const start = dayjs
@@ -148,6 +163,127 @@ describe(`Reservation merchant on opened store`, () => {
 		const response = await request.get(
 			`/api/${apiVersion}/reservation/665afa570e49b003942d1ff0`
 		);
+
+		expect(response.status).toBe(404);
+		expect(response.body.success).toBe(false);
+	});
+
+	test('should add new reservation for nonexisting user', async () => {
+		const start = dayjs
+			.utc()
+			.add(2, 'days')
+			.set('hour', 10)
+			.set('minute', 0)
+			.format('YYYYMMDDHHmm');
+		const end = dayjs
+			.utc()
+			.add(2, 'days')
+			.set('hour', 12)
+			.set('minute', 0)
+			.format('YYYYMMDDHHmm');
+
+		const newReservation = {
+			tableId: table._id.toString(),
+			email: 'tesssss@gmai.com',
+			name: 'New Reservation',
+			start,
+			end,
+		};
+
+		const response = await request
+			.post(`/api/${apiVersion}/reservation`)
+			.send(newReservation);
+
+		expect(response.status).toBe(200);
+		expect(response.body.success).toBe(true);
+		expect(response.body.msg.userId).toBeNull();
+	});
+
+	test('should add new reservation for existing user', async () => {
+		const start = dayjs
+			.utc()
+			.add(2, 'days')
+			.set('hour', 10)
+			.set('minute', 0)
+			.format('YYYYMMDDHHmm');
+		const end = dayjs
+			.utc()
+			.add(2, 'days')
+			.set('hour', 12)
+			.set('minute', 0)
+			.format('YYYYMMDDHHmm');
+
+		const newReservation = {
+			tableId: table._id.toString(),
+			email: user.email,
+			name: 'New Reservation',
+			start,
+			end,
+		};
+
+		const response = await request
+			.post(`/api/${apiVersion}/reservation`)
+			.send(newReservation);
+
+		expect(response.status).toBe(200);
+		expect(response.body.success).toBe(true);
+		expect(response.body.msg.userId).toBe(user._id.toString());
+	});
+
+	test('should check closed store', async () => {
+		const start = dayjs
+			.utc()
+			.add(2, 'days')
+			.set('hour', 10)
+			.set('minute', 0)
+			.format('YYYYMMDDHHmm');
+		const end = dayjs
+			.utc()
+			.add(2, 'days')
+			.set('hour', 12)
+			.set('minute', 0)
+			.format('YYYYMMDDHHmm');
+
+		const newReservation = {
+			tableId: table2._id.toString(),
+			email: user.email,
+			name: 'New Reservation',
+			start,
+			end,
+		};
+
+		const response = await request
+			.post(`/api/${apiVersion}/reservation`)
+			.send(newReservation);
+
+		expect(response.status).toBe(400);
+		expect(response.body.success).toBe(false);
+	});
+	test('should check disabled table', async () => {
+		const start = dayjs
+			.utc()
+			.add(2, 'days')
+			.set('hour', 10)
+			.set('minute', 0)
+			.format('YYYYMMDDHHmm');
+		const end = dayjs
+			.utc()
+			.add(2, 'days')
+			.set('hour', 12)
+			.set('minute', 0)
+			.format('YYYYMMDDHHmm');
+
+		const newReservation = {
+			tableId: table3._id.toString(),
+			email: user.email,
+			name: 'New Reservation',
+			start,
+			end,
+		};
+
+		const response = await request
+			.post(`/api/${apiVersion}/reservation`)
+			.send(newReservation);
 
 		expect(response.status).toBe(404);
 		expect(response.body.success).toBe(false);
