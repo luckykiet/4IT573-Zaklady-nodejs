@@ -8,22 +8,24 @@
 	"packageManager": "yarn@4.2.2",
 	"type": "module",
 	"devDependencies": {
-		"concurrently": "^8.2.2",
 		"npm-check-updates": "^16.14.20"
 	},
 	"engines": {
 		"node": ">=20.4.0"
 	},
+	"workspaces": [
+		"*"
+	],
 	"scripts": {
-		"build-client-win": "cd client && yarn build && cd .. && move /Y \"client\\build\" \"server\\public\" && if exist \"server\\public\\client\" rmdir /s /q \"server\\public\\client\" && rename \"server\\public\\build\" \"client\" ",
-		"build-client": "cd client && yarn build",
-		"deploy-client": "rm -rf ./server/public/client && mv ./client/build ./server/public/client",
-		"dev": "concurrently --kill-others \"cd client && yarn dev\" \"cd server && yarn dev\"",
-		"devhttps": "concurrently --kill-others \"cd client && yarn dev\" \"cd server && yarn devhttps\"",
-		"install-all": "cd server && yarn install && cd ../client && yarn install",
-		"start": "cd server && yarn start",
-		"test": "cd server && yarn test",
-		"upgrade-all": "cd client && yarn upgrade-dep && cd ../server && yarn upgrade-dep && cd .. && yarn upgrade-dep",
+		"build-client-win": "yarn workspace client build && move /Y \"client\\build\" \"server\" && if exist \"server\\public\" rmdir /s /q \"server\\public\" && rename \"server\\build\" \"public\" ",
+		"build-client": "yarn workspace client build",
+		"deploy-client": "rm -rf ./server/public && mv ./client/build ./server/public",
+		"dev": "yarn workspaces foreach -Api --topological-dev run dev",
+		"devhttps": "yarn workspaces foreach -Api --topological-dev run devhttps",
+		"install-all": "yarn install && yarn workspace client install && yarn workspace server install",
+		"start": "yarn workspace server start",
+		"test": "yarn workspace server test",
+		"upgrade-all": "yarn workspace client upgrade-dep && yarn workspace server upgrade-dep && yarn upgrade-dep",
 		"upgrade-dep": "ncu -u && yarn install"
 	}
 }
