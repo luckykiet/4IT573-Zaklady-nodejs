@@ -4,6 +4,13 @@ import HttpError from '../../../http-error.js';
 import mongoose from 'mongoose';
 import Table from '../../../models/tables.js';
 import utils from '../../../utils.js';
+import Reservations from '../../../models/reservations.js';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
+
+dayjs.extend(utc);
+dayjs.extend(customParseFormat);
 
 /**
  * @param {import("express").Request} req
@@ -72,6 +79,7 @@ export const fetchTable = async (req, res, next) => {
  * @param {import("express").NextFunction} next
  */
 export const updateTable = async (req, res, next) => {
+	let reservations = [];
 	try {
 		const { storeId, name, person, isAvailable } = req.body;
 
@@ -106,6 +114,45 @@ export const updateTable = async (req, res, next) => {
 			return next(new HttpError('srv_store_not_found', 404));
 		}
 
+		reservations = await Reservations.find({ tableId: table._id });
+		if (reservations.length > 0) {
+			await Reservations.deleteMany({ tableId: table._id });
+		}
+		//delete all reservation
+		if (table.isAvailable && !isAvailable && reservations.length > 0) {
+			// Send mail
+			const promises = reservations.map(async (reservation) => {
+				const now = dayjs.utc();
+				//send cancelation email for incoming reservation
+				if (
+					dayjs.utc(reservation.end).isAfter(now) &&
+					!reservation.isCancelled
+				) {
+					if (process.env.NODE_ENV !== 'TEST') {
+						try {
+							const table = tables.find((t) => reservation._id.equals(t._id));
+							await sendCancellationEmail({
+								email: reservation.email,
+								reservation: {
+									...reservation.toObject(),
+									start: dayjs
+										.utc(reservation.start)
+										.format('DD/MM/YYYY HH:mm'),
+									end: dayjs.utc(reservation.end).format('DD/MM/YYYY HH:mm'),
+								},
+								store,
+								table,
+							});
+						} catch (error) {
+							console.log(error);
+						}
+					}
+				}
+			});
+
+			await Promise.all(promises);
+		}
+
 		table.name = name || table.name;
 		table.person = person || table.person;
 		table.isAvailable = isAvailable ? isAvailable : table.isAvailable;
@@ -117,6 +164,11 @@ export const updateTable = async (req, res, next) => {
 			msg: table,
 		});
 	} catch (error) {
+		try {
+			await Reservations.insertMany(reservations);
+		} catch (err) {
+			console.log(err);
+		}
 		console.error(error);
 		return next(new HttpError('srv_update_store_failed', 500));
 	}
@@ -178,6 +230,7 @@ export const addTable = async (req, res, next) => {
  * @param {import("express").NextFunction} next
  */
 export const deleteTable = async (req, res, next) => {
+	let reservations = [];
 	try {
 		const { tableId } = req.params;
 
@@ -198,6 +251,45 @@ export const deleteTable = async (req, res, next) => {
 			return next(new HttpError('srv_store_not_found', 404));
 		}
 
+		reservations = await Reservations.find({ tableId: table._id });
+		if (reservations.length > 0) {
+			await Reservations.deleteMany({ tableId: table._id });
+		}
+		//delete all reservation
+		if (table.isAvailable && !isAvailable) {
+			// Send mail
+			const promises = reservations.map(async (reservation) => {
+				const now = dayjs.utc();
+				//send cancelation email for incoming reservation
+				if (
+					dayjs.utc(reservation.end).isAfter(now) &&
+					!reservation.isCancelled
+				) {
+					if (process.env.NODE_ENV !== 'TEST') {
+						try {
+							const table = tables.find((t) => reservation._id.equals(t._id));
+							await sendCancellationEmail({
+								email: reservation.email,
+								reservation: {
+									...reservation.toObject(),
+									start: dayjs
+										.utc(reservation.start)
+										.format('DD/MM/YYYY HH:mm'),
+									end: dayjs.utc(reservation.end).format('DD/MM/YYYY HH:mm'),
+								},
+								store,
+								table,
+							});
+						} catch (error) {
+							console.log(error);
+						}
+					}
+				}
+			});
+
+			await Promise.all(promises);
+		}
+
 		await Table.findOneAndDelete(tableId);
 
 		return res.status(200).json({
@@ -205,6 +297,11 @@ export const deleteTable = async (req, res, next) => {
 			msg: 'srv_table_deleted',
 		});
 	} catch (error) {
+		try {
+			await Reservations.insertMany(reservations);
+		} catch (err) {
+			console.log(err);
+		}
 		return next(new HttpError('srv_delete_table_failed', 500));
 	}
 };

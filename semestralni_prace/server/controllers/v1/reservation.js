@@ -9,6 +9,7 @@ import Reservation from '../../models/reservations.js';
 import Store from '../../models/stores.js';
 import Table from '../../models/tables.js';
 import utc from 'dayjs/plugin/utc.js';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import utils from '../../utils.js';
 import Users from '../../models/users.js';
 import {
@@ -20,6 +21,7 @@ import {
 const { sign, decode, verify } = jwt;
 dayjs.extend(utc);
 dayjs.extend(isBetween);
+dayjs.extend(customParseFormat);
 
 /**
  * @param {import("express").Request} req

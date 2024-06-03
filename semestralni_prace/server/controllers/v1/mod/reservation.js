@@ -5,12 +5,13 @@ import mongoose from 'mongoose';
 import Reservation from '../../../models/reservations.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import { CONSTANTS } from '../../../config/constants.js';
 import utils from '../../../utils.js';
 import Tables from '../../../models/tables.js';
-import { sendCancelReservationTokenEmail } from '../../../mailer.js';
 
 dayjs.extend(utc);
+dayjs.extend(customParseFormat);
 
 /**
  * @param {import("express").Request} req
