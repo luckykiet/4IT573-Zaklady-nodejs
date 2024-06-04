@@ -59,7 +59,9 @@ $ yarn devhttps        # run vite, nodemon
 ```bash
 $ yarn build        # build client
 $ yarn deploy-win   # moving to server public folder
-$ yarn start        # run production
+$ yarn starthttps   # run production https
+or
+$ yarn start        # run production http
 ```
 
 ### MacOs or Linux
@@ -68,6 +70,9 @@ $ yarn start        # run production
 $ yarn build        # build client
 $ yarn deploy       # run vite, nodemon
 $ yarn start        # run production
+$ yarn starthttps   # run production https
+or
+$ yarn start        # run production http
 ```
 
-- now it will run at https://vcap.me:3000/
+- now it will run at https://vcap.me:4000/
