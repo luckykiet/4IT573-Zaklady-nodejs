@@ -70,7 +70,9 @@ app.use(bodyParser.json({ limit: '20mb' }));
 app.use(bodyParser.urlencoded({ extended: false, limit: '20mb' }));
 
 const corsWhitelist = [
-	/^https:\/\/vcap\.me:3000$/,
+	/^http:\/\/vcap\.me:4000$/,
+	/^https:\/\/vcap\.me:4000$/,
+	/^http:\/\/vcap\.me:5173$/,
 	/^https:\/\/vcap\.me:5173$/,
 ];
 
@@ -124,12 +126,26 @@ app.use(apiPrefix, authRouter);
 app.use(apiPrefix, storeRouter);
 app.use(apiPrefix, reservationRouter);
 
-app.use(apiPrefix, ensureAuthenticated);
-app.use(apiPrefix + '/user', reservationUserRouter);
+app.use(apiPrefix + '/user', ensureAuthenticated, reservationUserRouter);
 
-app.use(apiPrefix + '/mod', merchantOrAdminOnly, storeModRouter);
-app.use(apiPrefix + '/mod', merchantOrAdminOnly, tableModRouter);
-app.use(apiPrefix + '/mod', merchantOrAdminOnly, reservationModRouter);
+app.use(
+	apiPrefix + '/mod',
+	ensureAuthenticated,
+	merchantOrAdminOnly,
+	storeModRouter
+);
+app.use(
+	apiPrefix + '/mod',
+	ensureAuthenticated,
+	merchantOrAdminOnly,
+	tableModRouter
+);
+app.use(
+	apiPrefix + '/mod',
+	ensureAuthenticated,
+	merchantOrAdminOnly,
+	reservationModRouter
+);
 
 app.get(
 	'*',
@@ -140,6 +156,8 @@ app.get(
 	 * @param {import("express").NextFunction} next
 	 */
 	(err, req, res, next) => {
+		console.log('test');
+
 		if (err) {
 			return next(err);
 		}

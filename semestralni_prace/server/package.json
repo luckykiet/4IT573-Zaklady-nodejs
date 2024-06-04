@@ -11,6 +11,7 @@
 		"dev": "NODE_ENV=DEV && nodemon bin/www.http.js",
 		"devhttps": "NODE_ENV=DEV && nodemon bin/www.https.js",
 		"start": "NODE_ENV=PRODUCTION && node bin/www.http.js",
+		"starthttps": "NODE_ENV=PRODUCTION && node bin/www.https.js",
 		"test": "yarn test:unit && yarn test:api",
 		"test:api": "NODE_ENV=TEST && jest --silent --testPathPattern='tests/v\\d+/api' --detectOpenHandles --forceExit",
 		"test:unit": "NODE_ENV=TEST && jest --silent --testPathPattern='tests/v\\d+/unit' --detectOpenHandles --forceExit",

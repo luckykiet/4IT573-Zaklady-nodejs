@@ -17,13 +17,15 @@
 		"*"
 	],
 	"scripts": {
-		"build-client-win": "yarn workspace client build && move /Y \"client\\build\" \"server\" && if exist \"server\\public\" rmdir /s /q \"server\\public\" && rename \"server\\build\" \"public\" ",
-		"build-client": "yarn workspace client build",
-		"deploy-client": "rm -rf ./server/public && mv ./client/build ./server/public",
+		"build-win": "yarn workspace client build",
+		"build": "yarn workspace client build",
+		"deploy": "rm -rf ./server/public && mv ./client/build ./server/public",
+		"deploy-win": "move /Y \"client\\build\" \"server\" && if exist \"server\\public\" rmdir /s /q \"server\\public\" && rename \"server\\build\" \"public\"",
 		"dev": "yarn workspaces foreach -Api --topological-dev run dev",
 		"devhttps": "yarn workspaces foreach -Api --topological-dev run devhttps",
 		"install-all": "yarn install && yarn workspace client install && yarn workspace server install",
 		"start": "yarn workspace server start",
+		"starthttps": "yarn workspace server starthttps",
 		"test": "yarn workspace server test",
 		"upgrade-all": "yarn workspace client upgrade-dep && yarn workspace server upgrade-dep && yarn upgrade-dep",
 		"upgrade-dep": "ncu -u && yarn install"
