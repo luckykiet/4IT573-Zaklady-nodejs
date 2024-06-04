@@ -1,5 +1,5 @@
 import useAuthApi from '@/api/useAuthApi';
-import { useAuthStore } from '@/store/auth-store';
+import { initialState, useAuthStore, useAuthStoreActions } from '@/store/auth-store';
 import { Button, Stack } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -11,7 +11,7 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 export default function ButtonAppBar() {
   const { isAuthenticated, user } = useAuthStore();
-
+  const { logout: logoutStore } = useAuthStoreActions();
   const { logout } = useAuthApi();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -22,6 +22,7 @@ export default function ButtonAppBar() {
       console.log(error);
     },
     onSuccess: () => {
+      logoutStore();
       queryClient.clear();
       navigate('/login');
     }
@@ -39,6 +40,18 @@ export default function ButtonAppBar() {
           >
             Table reservation
           </Typography>
+
+          {user && user.role && ['admin', 'merchant'].includes(user.role) && (
+            <Stack direction={'row'}>
+              <Button onClick={() => navigate('/auth/stores')} sx={{ color: (theme) => theme.palette.grey[50] }}>
+                Stores
+              </Button>
+              <Button onClick={() => navigate('/auth/reservations')} sx={{ color: (theme) => theme.palette.grey[50] }}>
+                Reservations
+              </Button>
+            </Stack>
+          )}
+
           {isAuthenticated ? (
             <Stack direction={'row'}>
               <Button onClick={() => navigate('/auth')} sx={{ color: (theme) => theme.palette.grey[50] }}>

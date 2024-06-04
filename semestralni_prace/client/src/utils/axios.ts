@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosServices = axios.create({
-  baseURL: 'api/v1',
+  baseURL: '/api/v1',
   withCredentials: true
 });
 // ==============================|| AXIOS - FOR MOCK SERVICES ||============================== //

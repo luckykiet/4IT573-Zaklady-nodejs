@@ -5,8 +5,13 @@ import axios from '@/utils/axios';
 
 const useAuthApi = () => {
   const checkAuth = async () => {
-    const { data } = await axios.post('/isAuthenticated');
-    return data;
+    const { data } = await axios.post<{ success: boolean; msg: string | undefined | UserProfile }>('/isAuthenticated');
+    const { success, msg } = data;
+
+    if (!success || typeof msg === 'string' || !msg) {
+      throw new Error(typeof msg === 'string' ? msg : `err_fetch_failed`);
+    }
+    return msg;
   };
 
   const login = async (form: LoginFormMutation): Promise<UserProfile> => {

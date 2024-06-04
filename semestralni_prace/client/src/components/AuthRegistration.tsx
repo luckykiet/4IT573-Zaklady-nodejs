@@ -1,4 +1,15 @@
-import { Button, FormHelperText, Grid, InputAdornment, InputLabel, OutlinedInput, Stack, IconButton } from '@mui/material';
+import {
+  Button,
+  FormHelperText,
+  Grid,
+  InputAdornment,
+  InputLabel,
+  OutlinedInput,
+  Stack,
+  IconButton,
+  Select,
+  MenuItem
+} from '@mui/material';
 import { Controller, FormProvider, SubmitHandler, useForm } from 'react-hook-form';
 import { RegistrationForm, RegistrationFormMutation } from '@/types/forms/auth';
 import { SyntheticEvent, useState } from 'react';
@@ -53,7 +64,7 @@ const AuthRegistration = () => {
     onSuccess: (data: UserProfile) => {
       loginStore(data);
       queryClient.clear();
-      navigate('/');
+      navigate('/auth');
     }
   });
 
@@ -164,6 +175,36 @@ const AuthRegistration = () => {
                     type={'password'}
                     placeholder="**************"
                   />
+                  {fieldState.isTouched && fieldState.invalid && <FormHelperText error>{fieldState.error?.message}</FormHelperText>}
+                </Stack>
+              )}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Controller
+              name="role"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Stack spacing={1}>
+                  <InputLabel htmlFor={field.name}>Role</InputLabel>
+                  <Select
+                    {...field}
+                    size={'medium'}
+                    error={fieldState.invalid}
+                    sx={{
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
+                      whiteSpace: 'pre'
+                    }}
+                  >
+                    {ROLES.filter((r) => r !== 'admin').map((role) => {
+                      return (
+                        <MenuItem key={role} value={role}>
+                          {role}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
                   {fieldState.isTouched && fieldState.invalid && <FormHelperText error>{fieldState.error?.message}</FormHelperText>}
                 </Stack>
               )}

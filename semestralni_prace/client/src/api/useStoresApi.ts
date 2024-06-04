@@ -9,8 +9,35 @@ const useStoreApi = () => {
     }
     return msg;
   };
+  const fetchGuestStore = async ({ id }: { id: string }): Promise<Store[]> => {
+    const { data } = await axios.get<{ success: boolean; msg: string | undefined | Store[] }>('/store', { params: { storeId: id } });
+    const { success, msg } = data;
+    if (!success || typeof msg === 'string' || !msg) {
+      throw new Error(typeof msg === 'string' ? msg : `err_fetch_failed`);
+    }
+    return msg;
+  };
 
-  return { fetchGuestStores };
+  const fetchOwnStores = async (): Promise<Store[]> => {
+    const { data } = await axios.get<{ success: boolean; msg: string | undefined | Store[] }>('/mod/stores');
+    const { success, msg } = data;
+
+    if (!success || typeof msg === 'string' || !msg) {
+      throw new Error(typeof msg === 'string' ? msg : `err_fetch_failed`);
+    }
+    return msg;
+  };
+
+  const fetchOwnStore = async ({ id }: { id: string }): Promise<Store> => {
+    const { data } = await axios.get<{ success: boolean; msg: string | undefined | Store }>('/mod/store', { params: { storeId: id } });
+    const { success, msg } = data;
+    if (!success || typeof msg === 'string' || !msg) {
+      throw new Error(typeof msg === 'string' ? msg : `err_fetch_failed`);
+    }
+    return msg;
+  };
+
+  return { fetchGuestStore, fetchGuestStores, fetchOwnStores, fetchOwnStore };
 };
 
 export default useStoreApi;

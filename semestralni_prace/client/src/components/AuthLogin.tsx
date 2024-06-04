@@ -45,10 +45,9 @@ const AuthLogin = () => {
       setPostMsg(error);
     },
     onSuccess: (data: UserProfile) => {
-      console.log(data);
       loginStore(data);
       queryClient.clear();
-      navigate('/');
+      navigate('/auth');
     }
   });
 

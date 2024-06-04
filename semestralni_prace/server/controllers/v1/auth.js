@@ -95,10 +95,13 @@ export const checkIsAuthenticated = (req, res) => {
 			return res.json({ success: false, msg: 'srv_not_logged_in' });
 		}
 		return res.json({
-			isAuthenticated: req.isAuthenticated(),
-			email: req.user.email,
-			name: req.user.name,
-			role: req.user.role,
+			success: true,
+			msg: {
+				isAuthenticated: req.isAuthenticated(),
+				email: req.user.email,
+				name: req.user.name,
+				role: req.user.role,
+			},
 		});
 	} catch (error) {
 		console.error(error);
