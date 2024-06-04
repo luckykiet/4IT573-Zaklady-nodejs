@@ -24,8 +24,8 @@ export const sendConfirmationEmail = async ({
 		},
 		to: email,
 		subject: 'Reservation Confirmation',
-		text: `Dear ${reservation.name},\n\nYour reservation has been confirmed.\n\nAt: ${store.name}\n${store.address.street}\n${store.address.city} ${store.address.postalCode}\n\nDetails:\nTable: ${table.name}\nStart: ${reservation.start}\nEnd: ${reservation.end}\n\nTo cancel your reservation, visit the following link: /reservation/${reservation._id}\n\nThank you for choosing us!`,
-		html: `Dear ${reservation.name},<br><br>Your reservation has been confirmed.<br><br>At: ${store.name}<br>${store.address.street}<br>${store.address.city} ${store.address.postalCode}<br><br>Details:<br>Table: ${table.name}<br>Start: ${reservation.start}<br>End: ${reservation.end}<br><br><a href="/reservation/${reservation._id}">Cancel reservation</a><br><br>Thank you for choosing us!`,
+		text: `Dear ${reservation.name},\n\nYour reservation has been confirmed.\n\nAt: ${store.name}\n${store.address.street}\n${store.address.city} ${store.address.zip}\n\nDetails:\nTable: ${table.name}\nStart: ${reservation.start}\nEnd: ${reservation.end}\n\nTo cancel your reservation, visit the following link: /reservation/${reservation._id}\n\nThank you for choosing us!`,
+		html: `Dear ${reservation.name},<br><br>Your reservation has been confirmed.<br><br>At: ${store.name}<br>${store.address.street}<br>${store.address.city} ${store.address.zip}<br><br>Details:<br>Table: ${table.name}<br>Start: ${reservation.start}<br>End: ${reservation.end}<br><br><a href="/reservation/${reservation._id}">Cancel reservation</a><br><br>Thank you for choosing us!`,
 	};
 
 	return await transporter.sendMail(mailOptions);
@@ -44,7 +44,7 @@ export const sendCancelReservationTokenEmail = async ({
 		<p>Your reservation ${reservation._id} cancellation. Link expires in 30 minutes.</p>
 		<p>At: ${store.name}</p>
 		<p>${store.address.street}</p>
-		<p>${store.address.city} ${store.address.postalCode}</p>
+		<p>${store.address.city} ${store.address.zip}</p>
 		<p>Table: ${table.name}</p>
       	<p>Click <a href="${cancelLink}">here</a> to cancel your reservation.</p>
     `;

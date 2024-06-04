@@ -70,8 +70,8 @@ app.use(bodyParser.json({ limit: '20mb' }));
 app.use(bodyParser.urlencoded({ extended: false, limit: '20mb' }));
 
 const corsWhitelist = [
-	/^https:\/\/[a-z0-9]+\.vcap\.me:3000$/,
-	/^https:\/\/[a-z0-9]+\.vcap\.me:5173$/,
+	/^https:\/\/vcap\.me:3000$/,
+	/^https:\/\/vcap\.me:5173$/,
 ];
 
 /**

@@ -15,14 +15,9 @@ export default defineConfig({
     host: 'vcap.me',
     port: 5173,
     proxy: {
-      '/': {
-        target: 'http://vcap.me:3000',
-        secure: false,
-        bypass(req) {
-          if (req.url && req.url === '/') {
-            return req.url;
-          }
-        }
+      '/api': {
+        target: 'https://vcap.me:4000/',
+        secure: false
       }
     }
   }

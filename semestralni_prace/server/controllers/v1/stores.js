@@ -29,7 +29,7 @@ export const fetchAvailableStores = async (req, res, next) => {
 			const tables = await Table.find({
 				storeId: store._id,
 			});
-			result.push({ ...store, tables });
+			result.push({ ...store.toObject(), tables });
 		});
 		await Promise.all(promises);
 		return res.json({ success: true, msg: result });
