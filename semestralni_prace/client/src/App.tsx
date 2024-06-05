@@ -1,3 +1,5 @@
+import 'dayjs/locale/cs';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';

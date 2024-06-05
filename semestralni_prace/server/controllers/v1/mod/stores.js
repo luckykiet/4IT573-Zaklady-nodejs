@@ -59,7 +59,6 @@ export const fetchUserStoreWithTables = async (req, res, next) => {
 		const store = await Store.findOne({
 			_id: req.params.storeId,
 			userId: req.user._id,
-			isAvailable: true,
 		}).select('-__v');
 
 		if (!store) {
@@ -151,15 +150,14 @@ export const updateStore = async (req, res, next) => {
 		if (!store) {
 			return next(new HttpError('srv_store_not_found', 404));
 		}
-
 		store.name = name || store.name;
 		store.address = address || store.address;
 		store.type = type || store.type;
 		store.openingTime = openingTime || store.openingTime;
-		store.isAvailable = isAvailable ? isAvailable : store.isAvailable;
+		store.isAvailable =
+			isAvailable !== undefined ? isAvailable : store.isAvailable;
 
 		await store.save();
-
 		return res.status(200).json({
 			success: true,
 			msg: store,

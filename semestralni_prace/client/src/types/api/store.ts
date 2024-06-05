@@ -1,6 +1,7 @@
+import { STORES_TYPES } from '@/config';
 import { Table } from './table';
+type StoreType = (typeof STORES_TYPES)[number];
 
-// types.ts
 export interface Address {
   street: string;
   city: string;
@@ -18,7 +19,8 @@ export interface Store {
   _id: string;
   name: string;
   address: Address;
-  type: string;
+  type: StoreType;
   openingTime: OpeningTime[];
   tables: Table[];
+  isAvailable: boolean;
 }

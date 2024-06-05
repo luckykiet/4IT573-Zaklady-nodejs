@@ -10,6 +10,9 @@ const MaintenanceError = Loadable(lazy(() => import('@/pages/maintenance/ErrorPa
 const HomePage = Loadable(lazy(() => import('@/pages/app/auth/HomePage')));
 const ReservationsPage = Loadable(lazy(() => import('@/pages/app/auth/ReservationsPage')));
 const StoresPage = Loadable(lazy(() => import('@/pages/app/auth/StoresPage')));
+const AddStorePage = Loadable(lazy(() => import('@/pages/app/auth/AddStorePage')));
+const StorePage = Loadable(lazy(() => import('@/pages/app/auth/StorePage')));
+const TablePage = Loadable(lazy(() => import('@/pages/app/auth/TablePage')));
 
 // ==============================|| MAIN ROUTES ||============================== //
 
@@ -39,6 +42,30 @@ const GuardedRoutes: RouteObject = {
       element: (
         <MerchantLayout>
           <StoresPage />
+        </MerchantLayout>
+      )
+    },
+    {
+      path: 'store',
+      element: (
+        <MerchantLayout>
+          <AddStorePage />
+        </MerchantLayout>
+      )
+    },
+    {
+      path: 'store/:storeId',
+      element: (
+        <MerchantLayout>
+          <StorePage />
+        </MerchantLayout>
+      )
+    },
+    {
+      path: 'table/:tableId',
+      element: (
+        <MerchantLayout>
+          <TablePage />
         </MerchantLayout>
       )
     },

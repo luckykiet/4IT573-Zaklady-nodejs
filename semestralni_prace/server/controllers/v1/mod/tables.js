@@ -81,36 +81,35 @@ export const fetchTable = async (req, res, next) => {
 export const updateTable = async (req, res, next) => {
 	let reservations = [];
 	try {
-		const { storeId, name, person, isAvailable } = req.body;
+		const { tableId, name, person, isAvailable } = req.body;
 
 		const validator = {
-			storeId: /^\w{24}$/,
+			tableId: /^\w{24}$/,
 			name: /^.{1,100}$/,
 			person: /^\d+$/,
+			isAvailable: isAvailable ? utils.createEnumRegex([true, false]) : false,
 		};
 
 		if (
-			!mongoose.Types.ObjectId.isValid(storeId) ||
+			!mongoose.Types.ObjectId.isValid(tableId) ||
 			!utils.isValidRequest(validator, req.body) ||
 			parseInt(person) <= 0
 		) {
 			return next(new HttpError('srv_invalid_request', 400));
 		}
 
+		const table = await Table.findById(tableId);
+
+		if (!table) {
+			return next(new HttpError('srv_table_not_found', 404));
+		}
+
 		const store = await Store.findOne({
-			_id: storeId,
+			_id: table.storeId,
 			userId: req.user._id,
 		});
 
 		if (!store) {
-			return next(new HttpError('srv_store_not_found', 404));
-		}
-
-		const table = await Table.findOne({
-			storeId,
-		});
-
-		if (!table) {
 			return next(new HttpError('srv_store_not_found', 404));
 		}
 
@@ -155,7 +154,8 @@ export const updateTable = async (req, res, next) => {
 
 		table.name = name || table.name;
 		table.person = person || table.person;
-		table.isAvailable = isAvailable ? isAvailable : table.isAvailable;
+		table.isAvailable =
+			isAvailable !== undefined ? isAvailable : table.isAvailable;
 
 		await table.save();
 
@@ -255,48 +255,42 @@ export const deleteTable = async (req, res, next) => {
 		if (reservations.length > 0) {
 			await Reservations.deleteMany({ tableId: table._id });
 		}
-		//delete all reservation
-		if (table.isAvailable && !isAvailable) {
-			// Send mail
-			const promises = reservations.map(async (reservation) => {
-				const now = dayjs.utc();
-				//send cancelation email for incoming reservation
-				if (
-					dayjs.utc(reservation.end).isAfter(now) &&
-					!reservation.isCancelled
-				) {
-					if (process.env.NODE_ENV !== 'TEST') {
-						try {
-							const table = tables.find((t) => reservation._id.equals(t._id));
-							await sendCancellationEmail({
-								email: reservation.email,
-								reservation: {
-									...reservation.toObject(),
-									start: dayjs
-										.utc(reservation.start)
-										.format('DD/MM/YYYY HH:mm'),
-									end: dayjs.utc(reservation.end).format('DD/MM/YYYY HH:mm'),
-								},
-								store,
-								table,
-							});
-						} catch (error) {
-							console.log(error);
-						}
+
+		// Send mail
+		const promises = reservations.map(async (reservation) => {
+			const now = dayjs.utc();
+			//send cancelation email for incoming reservation
+			if (dayjs.utc(reservation.end).isAfter(now) && !reservation.isCancelled) {
+				if (process.env.NODE_ENV !== 'TEST') {
+					try {
+						const table = tables.find((t) => reservation._id.equals(t._id));
+						await sendCancellationEmail({
+							email: reservation.email,
+							reservation: {
+								...reservation.toObject(),
+								start: dayjs.utc(reservation.start).format('DD/MM/YYYY HH:mm'),
+								end: dayjs.utc(reservation.end).format('DD/MM/YYYY HH:mm'),
+							},
+							store,
+							table,
+						});
+					} catch (error) {
+						console.log(error);
 					}
 				}
-			});
+			}
+		});
 
-			await Promise.all(promises);
-		}
+		await Promise.all(promises);
 
-		await Table.findOneAndDelete(tableId);
+		await Table.findByIdAndDelete(tableId);
 
 		return res.status(200).json({
 			success: true,
 			msg: 'srv_table_deleted',
 		});
 	} catch (error) {
+		console.log(error);
 		try {
 			await Reservations.insertMany(reservations);
 		} catch (err) {
