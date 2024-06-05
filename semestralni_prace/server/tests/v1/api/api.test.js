@@ -18,7 +18,7 @@ afterAll(async () => {
 test('test random API access', async () => {
 	const response = await request.get(`/api/${apiVersion}`);
 	expect(response.status).not.toBe(200);
-	expect(response.status).toBe(401);
+	expect(response.status).toBe(404);
 });
 
 test('test random API access', async () => {

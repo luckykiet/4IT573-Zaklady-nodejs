@@ -334,3 +334,39 @@ export const fetchReservation = async (req, res, next) => {
 		return next(new HttpError('srv_error', 500));
 	}
 };
+/**
+ * @param {import("express").Request} req
+ * @param {import("express").Response} res
+ * @param {import("express").NextFunction} next
+ */
+export const fetchReservationsOfStoreAtDay = async (req, res, next) => {
+	try {
+		const { storeId, date } = req.body;
+
+		if (
+			!storeId ||
+			!mongoose.Types.ObjectId.isValid(storeId) ||
+			!dayjs(date, 'YYYYMMDD', true).isValid()
+		) {
+			return next(new HttpError('srv_invalid_request', 400));
+		}
+
+		const dayToFind = dayjs.utc(date, 'YYYYMMDD', true);
+		const startOfDay = dayToFind.startOf('day').toDate();
+		const endOfDay = dayToFind.endOf('day').toDate();
+
+		const reservations = await Reservation.find({
+			storeId,
+			start: { $lt: endOfDay },
+			end: { $gt: startOfDay },
+		});
+
+		return res.json({
+			success: true,
+			msg: reservations,
+		});
+	} catch (error) {
+		console.error(error);
+		return next(new HttpError('srv_error', 500));
+	}
+};

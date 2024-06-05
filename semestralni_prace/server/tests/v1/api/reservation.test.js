@@ -467,4 +467,68 @@ describe(`Reservation merchant on opened store`, () => {
 		expect(response.status).toBe(400);
 		expect(response.body.success).toBe(false);
 	});
+
+	test('should fetch day reservations', async () => {
+		const day1 = dayjs.utc('15/06/2024', 'DD/MM/YYYY');
+
+		const start = day1.set('hour', 9).set('minute', 0);
+		const end = day1.set('hour', 10).set('minute', 0);
+
+		await Reservations.create({
+			userId: user._id,
+			storeId: store._id,
+			tableId: table._id,
+			email: 'reservation@example.com',
+			name: 'Reservation Name',
+			start: start.toDate(),
+			end: end.toDate(),
+			isCancelled: false,
+		});
+
+		await Reservations.create({
+			userId: user._id,
+			storeId: store._id,
+			tableId: table._id,
+			email: 'reservation@example.com',
+			name: 'Reservation Name',
+			start: start.add(1, 'hour').toDate(),
+			end: end.add(1, 'hour').toDate(),
+			isCancelled: false,
+		});
+
+		const response = await request
+			.post(`/api/${apiVersion}/reservations`)
+			.send({
+				date: day1.format('YYYYMMDD'),
+				storeId: store._id.toString(),
+			});
+
+		expect(response.status).toBe(200);
+		expect(response.body.success).toBe(true);
+		expect(response.body.msg).toHaveLength(2);
+	});
+
+	test('should not fetch day reservations, return 400 bad input', async () => {
+		const day1 = dayjs.utc('15/06/2024', 'DD/MM/YYYY');
+		const response = await request
+			.post(`/api/${apiVersion}/reservations`)
+			.send({
+				date: day1.format('YYYYMMDDHHmm'),
+				storeId: store._id.toString(),
+			});
+
+		expect(response.status).toBe(400);
+		expect(response.body.success).toBe(false);
+	});
+	test('should not fetch day reservations, return 400 bad input', async () => {
+		const day1 = dayjs.utc('15/06/2024', 'DD/MM/YYYY');
+		const response = await request
+			.post(`/api/${apiVersion}/reservations`)
+			.send({
+				date: day1.format('YYYYMMDDHHmm'),
+			});
+
+		expect(response.status).toBe(400);
+		expect(response.body.success).toBe(false);
+	});
 });
