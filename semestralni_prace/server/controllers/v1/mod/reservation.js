@@ -105,6 +105,13 @@ export const fetchReservationsOfAllStores = async (req, res, next) => {
 
 		const stores = await Store.find({ userId: req.user._id });
 		const storeIds = stores.map((s) => s._id);
+		const newStores = [];
+		const promises = stores.map(async (s) => {
+			const tables = await Tables.find({ storeId: s._id });
+			newStores.push({ ...s.toObject(), tables });
+		});
+
+		await Promise.all(promises);
 
 		const typesToFind = types && types.length > 0 ? types.split(';') : ['all'];
 		typesToFind.map((type) => {
@@ -134,7 +141,10 @@ export const fetchReservationsOfAllStores = async (req, res, next) => {
 		const reservations = await Reservation.find(query)
 			.sort({ createdAt: -1 })
 			.limit(limitValue);
-		return res.json({ success: true, msg: { reservations, stores } });
+		return res.json({
+			success: true,
+			msg: { reservations, stores: newStores },
+		});
 	} catch (error) {
 		console.error(error);
 		return next(new HttpError('srv_error', 500));

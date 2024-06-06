@@ -104,9 +104,9 @@ export const updateStore = async (req, res, next) => {
 		}
 
 		openingTime &&
-			openingTime.forEach((day) => {
+			openingTime.map((day) => {
 				if (
-					!day ||
+					day.isOpen === undefined ||
 					typeof day.isOpen !== 'boolean' ||
 					!day.start ||
 					!dayjs(day.start, 'HH:mm', true).isValid() ||

@@ -21,6 +21,6 @@ export interface Store {
   address: Address;
   type: StoreType;
   openingTime: OpeningTime[];
-  tables: Table[];
+  tables?: Table[];
   isAvailable: boolean;
 }

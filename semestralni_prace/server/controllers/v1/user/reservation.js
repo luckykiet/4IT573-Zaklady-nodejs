@@ -5,6 +5,8 @@ import Reservation from '../../../models/reservations.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import utils from '../../../utils.js';
+import Tables from '../../../models/tables.js';
+import Stores from '../../../models/stores.js';
 
 dayjs.extend(utc);
 
@@ -55,11 +57,27 @@ export const fetchReservationsOfUser = async (req, res, next) => {
 				query.$or = conditions;
 			}
 		}
+		const storeIds = new Set();
+		const tableIds = new Set();
 
 		const reservations = await Reservation.find(query)
 			.sort({ createdAt: -1 })
 			.limit(limitValue);
-		return res.json({ success: true, msg: reservations });
+
+		reservations.map((reservation) => {
+			if (!storeIds.has(reservation.storeId.toString())) {
+				storeIds.add(reservation.storeId.toString());
+			}
+
+			if (!tableIds.has(reservation.tableId.toString())) {
+				tableIds.add(reservation.tableId.toString());
+			}
+		});
+
+		const tables = await Tables.find({ _id: { $in: Array.from(tableIds) } });
+		const stores = await Stores.find({ _id: { $in: Array.from(storeIds) } });
+
+		return res.json({ success: true, msg: { reservations, tables, stores } });
 	} catch (error) {
 		console.error(error);
 		return next(new HttpError('srv_error', 500));

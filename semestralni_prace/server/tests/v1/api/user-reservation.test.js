@@ -161,7 +161,9 @@ describe(`Reservation merchant on opened store`, () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toHaveLength(1);
+		expect(response.body.msg.reservations).toHaveLength(1);
+		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg.tables).toHaveLength(1);
 	});
 
 	test('should fetch 2 of all reservations', async () => {
@@ -181,8 +183,8 @@ describe(`Reservation merchant on opened store`, () => {
 
 		await Reservations.create({
 			userId: user._id,
-			storeId: store._id,
-			tableId: table._id,
+			storeId: store2._id,
+			tableId: table2._id,
 			email: 'reservation@example.com',
 			name: 'Reservation Name',
 			start: newStart.toDate(),
@@ -197,7 +199,9 @@ describe(`Reservation merchant on opened store`, () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toHaveLength(2);
+		expect(response.body.msg.reservations).toHaveLength(2);
+		expect(response.body.msg.stores).toHaveLength(2);
+		expect(response.body.msg.tables).toHaveLength(2);
 	});
 
 	test('should fetch 2 reservations of incoming stores', async () => {
@@ -244,7 +248,9 @@ describe(`Reservation merchant on opened store`, () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toHaveLength(2);
+		expect(response.body.msg.reservations).toHaveLength(2);
+		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg.tables).toHaveLength(1);
 	});
 
 	test('should fetch 2 reservations of cancelled stores', async () => {
@@ -291,7 +297,9 @@ describe(`Reservation merchant on opened store`, () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toHaveLength(2);
+		expect(response.body.msg.reservations).toHaveLength(2);
+		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg.tables).toHaveLength(1);
 	});
 
 	test('should fetch 3 reservations of expired and cancelled stores', async () => {
@@ -349,8 +357,10 @@ describe(`Reservation merchant on opened store`, () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toHaveLength(3);
-		response.body.msg.forEach((reservation) => {
+		expect(response.body.msg.reservations).toHaveLength(3);
+		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg.tables).toHaveLength(1);
+		response.body.msg.reservations.forEach((reservation) => {
 			expect(reservation.userId).toBe(user._id.toString());
 		});
 	});
@@ -409,8 +419,10 @@ describe(`Reservation merchant on opened store`, () => {
 
 		expect(response.status).toBe(200);
 		expect(response.body.success).toBe(true);
-		expect(response.body.msg).toHaveLength(1);
-		response.body.msg.forEach((reservation) => {
+		expect(response.body.msg.reservations).toHaveLength(1);
+		expect(response.body.msg.stores).toHaveLength(1);
+		expect(response.body.msg.tables).toHaveLength(1);
+		response.body.msg.reservations.forEach((reservation) => {
 			expect(reservation.userId).toBe(user._id.toString());
 		});
 	});

@@ -1,23 +1,23 @@
 import useReservationsApi from '@/api/useReservationsApi';
 
-import { DAYS_OF_WEEK_SHORT } from '@/config';
 import { Container, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import _ from 'lodash';
+import { useNavigate } from 'react-router-dom';
+dayjs.extend(utc);
 
 export default function ReservationsPage() {
   const { fetchAllStoresReservations } = useReservationsApi();
-  const {
-    isLoading,
-    isFetching,
-    error,
-    isError,
-    data: reservations
-  } = useQuery({
+  const navigate = useNavigate();
+  const { isLoading, isFetching, error, isError, data } = useQuery({
     queryKey: ['stores_reservations'],
     queryFn: () => fetchAllStoresReservations()
   });
-  console.log(reservations);
+
+  const now = dayjs.utc();
+
   return (
     <Container maxWidth={'xl'}>
       <Grid container spacing={2}>
@@ -25,36 +25,41 @@ export default function ReservationsPage() {
           <Typography variant="h5">Reservation of my stores</Typography>
         </Grid>
         <Grid item xs={12}>
-          {reservations && _.isArray(reservations) && !_.isEmpty(reservations) ? (
+          {data?.reservations && _.isArray(data.reservations) && !_.isEmpty(data.reservations) ? (
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
                   <TableRow>
+                    <TableCell>Store</TableCell>
+                    <TableCell>Table</TableCell>
                     <TableCell>Name</TableCell>
-                    <TableCell>Address</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Tables</TableCell>
-                    <TableCell>Opening Times</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Time</TableCell>
+                    <TableCell>Status</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {reservations.map((reservation) => (
-                    <TableRow key={reservation._id}>
-                      <TableCell>{reservation.name}</TableCell>
-                      <TableCell>
-                        {reservation.address.street}, {reservation.address.zip} {reservation.address.city}
-                      </TableCell>
-                      <TableCell>{reservation.type}</TableCell>
-                      <TableCell>{reservation.tables.length}</TableCell>
-                      <TableCell>
-                        {reservation.openingTime.map((time, index) => (
-                          <div key={index}>
-                            {DAYS_OF_WEEK_SHORT[index]}: {time.isOpen ? `${time.start} - ${time.end}` : '(Closed)'}
-                          </div>
-                        ))}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {data.reservations.map((reservation) => {
+                    const store = data.stores ? data.stores.find((s) => s._id === reservation.storeId) : null;
+                    const table = store ? store?.tables?.find((t) => t._id === reservation.tableId) : null;
+                    const isExpired = dayjs.utc(reservation.end).isBefore(now);
+                    return (
+                      <TableRow key={reservation._id}>
+                        <TableCell onClick={() => navigate(`/auth/store/${reservation.storeId}`)}>
+                          {store ? store.name : reservation.storeId}
+                        </TableCell>
+                        <TableCell onClick={() => navigate(`/auth/table/${reservation.tableId}`)}>
+                          {table ? table.name : reservation.tableId}
+                        </TableCell>
+                        <TableCell>{reservation.name}</TableCell>
+                        <TableCell>{reservation.email}</TableCell>
+                        <TableCell>
+                          {reservation.start} - {reservation.end}
+                        </TableCell>
+                        <TableCell>{reservation.isCancelled ? 'Cancelled' : isExpired ? 'Expired' : 'Incoming'}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>

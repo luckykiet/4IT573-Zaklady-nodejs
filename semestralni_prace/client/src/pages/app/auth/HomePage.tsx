@@ -1,22 +1,24 @@
 import useReservationsApi from '@/api/useReservationsApi';
 
-import { DAYS_OF_WEEK_SHORT } from '@/config';
 import { Container, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import _ from 'lodash';
+import { useNavigate } from 'react-router-dom';
+dayjs.extend(utc);
 
 export default function HomePage() {
   const { fetchOwnReservations } = useReservationsApi();
-  const {
-    isLoading,
-    isFetching,
-    error,
-    isError,
-    data: reservations
-  } = useQuery({
-    queryKey: ['own_reservations'],
+  const navigate = useNavigate();
+
+  const { isLoading, isFetching, error, isError, data } = useQuery({
+    queryKey: ['user_reservations'],
     queryFn: () => fetchOwnReservations()
   });
+
+  console.log(data);
+  const now = dayjs.utc();
 
   return (
     <Container maxWidth={'xl'}>
@@ -25,42 +27,47 @@ export default function HomePage() {
           <Typography variant="h5">My reservations</Typography>
         </Grid>
         <Grid item xs={12}>
-          {reservations && _.isArray(reservations) && !_.isEmpty(reservations) ? (
+          {data?.reservations && _.isArray(data.reservations) && !_.isEmpty(data.reservations) ? (
             <TableContainer component={Paper}>
               <Table>
                 <TableHead>
                   <TableRow>
+                    <TableCell>Store</TableCell>
+                    <TableCell>Table</TableCell>
                     <TableCell>Name</TableCell>
-                    <TableCell>Address</TableCell>
-                    <TableCell>Type</TableCell>
-                    <TableCell>Tables</TableCell>
-                    <TableCell>Opening Times</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Time</TableCell>
+                    <TableCell>Status</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {reservations.map((store) => (
-                    <TableRow key={store._id}>
-                      <TableCell>{store.name}</TableCell>
-                      <TableCell>
-                        {store.address.street}, {store.address.zip} {store.address.city}
-                      </TableCell>
-                      <TableCell>{store.type}</TableCell>
-                      <TableCell>{store.tables.length}</TableCell>
-                      <TableCell>
-                        {store.openingTime.map((time, index) => (
-                          <div key={index}>
-                            {DAYS_OF_WEEK_SHORT[index]}: {time.isOpen ? `${time.start} - ${time.end}` : '(Closed)'}
-                          </div>
-                        ))}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {data.reservations.map((reservation) => {
+                    const store = data.stores ? data.stores.find((s) => s._id === reservation.storeId) : null;
+                    const table = data.tables ? data.tables.find((t) => t._id === reservation.tableId) : null;
+                    const isExpired = dayjs.utc(reservation.end).isBefore(now);
+                    return (
+                      <TableRow key={reservation._id}>
+                        <TableCell onClick={() => navigate(`/auth/store/${reservation.storeId}`)}>
+                          {store ? store.name : reservation.storeId}
+                        </TableCell>
+                        <TableCell onClick={() => navigate(`/auth/table/${reservation.tableId}`)}>
+                          {table ? table.name : reservation.tableId}
+                        </TableCell>
+                        <TableCell>{reservation.name}</TableCell>
+                        <TableCell>{reservation.email}</TableCell>
+                        <TableCell>
+                          {reservation.start} - {reservation.end}
+                        </TableCell>
+                        <TableCell>{reservation.isCancelled ? 'Cancelled' : isExpired ? 'Expired' : 'Incoming'}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
           ) : (
             <Typography color={'error'} variant="h4" align="center">
-              No store available
+              No reservations available
             </Typography>
           )}
         </Grid>

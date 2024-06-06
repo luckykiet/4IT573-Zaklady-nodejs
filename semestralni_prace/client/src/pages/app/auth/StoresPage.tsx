@@ -66,7 +66,7 @@ export default function StoresPage() {
                           {store.address.street}, {store.address.zip} {store.address.city}
                         </TableCell>
                         <TableCell>{store.type}</TableCell>
-                        <TableCell>{store.tables.length}</TableCell>
+                        <TableCell>{store.tables ? store.tables.length : 0}</TableCell>
                         <TableCell>
                           {store.openingTime.map((time, index) => (
                             <div key={index}>
