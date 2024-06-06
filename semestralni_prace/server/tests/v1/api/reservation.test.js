@@ -410,7 +410,7 @@ describe(`Reservation merchant on opened store`, () => {
 
 	test('should send reservation cancellation token', async () => {
 		const response = await request.get(
-			`/api/${apiVersion}/reservation/cancelRequest/${reservation._id}`
+			`/api/${apiVersion}/reservation/cancel/${reservation._id}`
 		);
 
 		expect(response.status).toBe(200);
@@ -423,7 +423,7 @@ describe(`Reservation merchant on opened store`, () => {
 
 	test('should check cancelled reservation', async () => {
 		const response = await request.get(
-			`/api/${apiVersion}/reservation/cancelRequest/${reservation2._id}`
+			`/api/${apiVersion}/reservation/cancel/${reservation2._id}`
 		);
 
 		expect(response.status).toBe(400);

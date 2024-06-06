@@ -17,6 +17,7 @@ export const sendConfirmationEmail = async ({
 	table,
 	store,
 }) => {
+	const link = `${CONFIG.FRONTEND_URL}/reservation/${reservation._id}`;
 	const mailOptions = {
 		from: {
 			name: CONFIG.APP_NAME,
@@ -24,8 +25,8 @@ export const sendConfirmationEmail = async ({
 		},
 		to: email,
 		subject: 'Reservation Confirmation',
-		text: `Dear ${reservation.name},\n\nYour reservation has been confirmed.\n\nAt: ${store.name}\n${store.address.street}\n${store.address.city} ${store.address.zip}\n\nDetails:\nTable: ${table.name}\nStart: ${reservation.start}\nEnd: ${reservation.end}\n\nTo cancel your reservation, visit the following link: /reservation/${reservation._id}\n\nThank you for choosing us!`,
-		html: `Dear ${reservation.name},<br><br>Your reservation has been confirmed.<br><br>At: ${store.name}<br>${store.address.street}<br>${store.address.city} ${store.address.zip}<br><br>Details:<br>Table: ${table.name}<br>Start: ${reservation.start}<br>End: ${reservation.end}<br><br><a href="/reservation/${reservation._id}">Cancel reservation</a><br><br>Thank you for choosing us!`,
+		text: `Dear ${reservation.name},\n\nYour reservation has been confirmed.\n\nAt: ${store.name}\n${store.address.street}\n${store.address.city} ${store.address.zip}\n\nDetails:\nTable: ${table.name}\nStart: ${reservation.start}\nEnd: ${reservation.end}\n\nTo view your reservation, visit the following link: ${link}\n\nThank you for choosing us!`,
+		html: `Dear ${reservation.name},<br><br>Your reservation has been confirmed.<br><br>At: ${store.name}<br>${store.address.street}<br>${store.address.city} ${store.address.zip}<br><br>Details:<br>Table: ${table.name}<br>Start: ${reservation.start}<br>End: ${reservation.end}<br><br><a href="${link}">View reservation</a><br><br>Thank you for choosing us!`,
 	};
 
 	return await transporter.sendMail(mailOptions);

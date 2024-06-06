@@ -6,6 +6,8 @@ import { lazy } from 'react';
 import GuestGuard from '@/utils/route-guard/GuestGuard';
 const MaintenanceError = Loadable(lazy(() => import('@/pages/maintenance/ErrorPage')));
 const HomePage = Loadable(lazy(() => import('@/pages/app/HomePage')));
+const StorePage = Loadable(lazy(() => import('@/pages/app/StorePage')));
+const ReservationPage = Loadable(lazy(() => import('@/pages/app/ReservationPage')));
 
 // ==============================|| MAIN ROUTES ||============================== //
 
@@ -21,6 +23,14 @@ const MainRoutes: RouteObject = {
     {
       path: '',
       element: <HomePage />
+    },
+    {
+      path: 'store/:storeId',
+      element: <StorePage />
+    },
+    {
+      path: 'reservation/:reservationId',
+      element: <ReservationPage />
     },
     {
       path: 'maintenance',

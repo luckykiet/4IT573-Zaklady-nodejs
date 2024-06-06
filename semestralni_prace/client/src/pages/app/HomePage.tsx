@@ -3,8 +3,10 @@ import { DAYS_OF_WEEK_SHORT } from '@/config';
 import { Container, Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import _ from 'lodash';
+import { useNavigate } from 'react-router-dom';
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const { fetchGuestStores } = useStoreApi();
   const {
     isLoading,
@@ -39,12 +41,12 @@ export default function HomePage() {
                 <TableBody>
                   {stores.map((store) => (
                     <TableRow key={store._id}>
-                      <TableCell>{store.name}</TableCell>
+                      <TableCell onClick={() => navigate(`/store/${store._id}`)}>{store.name}</TableCell>
                       <TableCell>
                         {store.address.street}, {store.address.zip} {store.address.city}
                       </TableCell>
                       <TableCell>{store.type}</TableCell>
-                      <TableCell>{store.tables.length}</TableCell>
+                      <TableCell>{store.tables?.length || 0}</TableCell>
                       <TableCell>
                         {store.openingTime.map((time, index) => (
                           <div key={index}>

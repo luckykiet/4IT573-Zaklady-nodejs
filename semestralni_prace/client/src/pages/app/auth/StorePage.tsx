@@ -57,8 +57,8 @@ const storeSchema = z.object({
 
 export default function StorePage() {
   const { storeId } = useParams();
-
-  const { fetchOwnStore, updateStore } = useStoreApi();
+  const navigate = useNavigate();
+  const { fetchOwnStore, updateStore, deleteStore } = useStoreApi();
   const { addNewTable, deleteTable } = useTableApi();
   const [postMsg, setPostMsg] = useState<string | Error>('');
 
@@ -133,6 +133,18 @@ export default function StorePage() {
     onSuccess: () => {
       setPostMsg('Table deleted');
       refetch();
+    }
+  });
+
+  const deleteStoreMutation = useMutation({
+    mutationFn: (id: string) => deleteStore({ id }),
+    onError: (error) => {
+      console.log(error);
+      setPostMsg(error);
+    },
+    onSuccess: () => {
+      setPostMsg('Store deleted');
+      navigate('/auth/stores');
     }
   });
 
@@ -440,6 +452,20 @@ export default function StorePage() {
                   color="primary"
                 >
                   Update store
+                </Button>
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  disableElevation
+                  disabled={deleteStoreMutation.isPending}
+                  fullWidth
+                  size="large"
+                  type="button"
+                  variant="contained"
+                  color="error"
+                  onClick={() => deleteStoreMutation.mutateAsync(store._id)}
+                >
+                  Delete store
                 </Button>
               </Grid>
             </Grid>

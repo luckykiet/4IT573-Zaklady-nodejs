@@ -179,7 +179,7 @@ export default function AddStorePage() {
 
             {postMsg && (
               <Grid item xs={12}>
-                <FormHelperText error>{postMsg instanceof Error ? postMsg.message : postMsg}</FormHelperText>
+                <FormHelperText error={postMsg instanceof Error}>{postMsg instanceof Error ? postMsg.message : postMsg}</FormHelperText>
               </Grid>
             )}
 

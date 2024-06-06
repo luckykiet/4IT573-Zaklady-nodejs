@@ -28,6 +28,7 @@ export const fetchAvailableStores = async (req, res, next) => {
 		const promises = stores.map(async (store) => {
 			const tables = await Table.find({
 				storeId: store._id,
+				isAvailable: true,
 			});
 			result.push({ ...store.toObject(), tables });
 		});
@@ -53,7 +54,7 @@ export const fetchAvailableStoreWithTables = async (req, res, next) => {
 		const store = await Store.findOne({
 			_id: req.params.storeId,
 			isAvailable: true,
-		}).select('name address type openingTime -__v');
+		}).select('name address type openingTime');
 
 		if (!store) {
 			return next(new HttpError('srv_invalid_request', 404));
@@ -61,6 +62,7 @@ export const fetchAvailableStoreWithTables = async (req, res, next) => {
 
 		const tables = await Table.find({
 			storeId: store._id,
+			isAvailable: true,
 		});
 
 		return res.status(200).json({

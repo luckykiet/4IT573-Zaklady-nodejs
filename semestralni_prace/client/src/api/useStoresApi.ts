@@ -10,8 +10,8 @@ const useStoreApi = () => {
     }
     return msg;
   };
-  const fetchGuestStore = async ({ id }: { id: string }): Promise<Store[]> => {
-    const { data } = await axios.get<{ success: boolean; msg: string | undefined | Store[] }>(`/store/${id}`);
+  const fetchGuestStore = async ({ id }: { id: string }): Promise<Store> => {
+    const { data } = await axios.get<{ success: boolean; msg: string | undefined | Store }>(`/store/${id}`);
     const { success, msg } = data;
     if (!success || typeof msg === 'string' || !msg) {
       throw new Error(typeof msg === 'string' ? msg : `err_fetch_failed`);
@@ -54,8 +54,15 @@ const useStoreApi = () => {
     }
     return msg;
   };
-
-  return { addNewStore, updateStore, fetchGuestStore, fetchGuestStores, fetchOwnStores, fetchOwnStore };
+  const deleteStore = async ({ id }: { id: string }): Promise<string> => {
+    const { data } = await axios.delete<{ success: boolean; msg: string | undefined }>(`/mod/store/${id}`);
+    const { success, msg } = data;
+    if (!success || !msg) {
+      throw new Error(`err_fetch_failed`);
+    }
+    return msg;
+  };
+  return { addNewStore, updateStore, deleteStore, fetchGuestStore, fetchGuestStores, fetchOwnStores, fetchOwnStore };
 };
 
 export default useStoreApi;

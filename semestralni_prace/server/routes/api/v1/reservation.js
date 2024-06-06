@@ -10,7 +10,7 @@ import {
 export const router = Router();
 
 router.get('/reservation/:reservationId', fetchReservation);
-router.get('/reservation/cancelRequest/:reservationId', sendReservationToken);
+router.get('/reservation/cancel/:reservationId', sendReservationToken);
 
 router.post('/reservations', fetchReservationsOfStoreAtDay);
 router.post('/reservation', addReservation);
