@@ -103,8 +103,10 @@ export const updateStore = async (req, res, next) => {
 			return next(new HttpError('srv_invalid_request', 400));
 		}
 
-		openingTime &&
-			openingTime.map((day) => {
+		if (openingTime) {
+			for (let i = 0; i < openingTime.length; i++) {
+				const day = openingTime[i];
+
 				if (
 					day.isOpen === undefined ||
 					typeof day.isOpen !== 'boolean' ||
@@ -120,7 +122,8 @@ export const updateStore = async (req, res, next) => {
 					console.log('Invalid openingTime');
 					return next(new HttpError('srv_invalid_request', 400));
 				}
-			});
+			}
+		}
 
 		if (!utils.isValidRequest(addressValidator, req.body.address)) {
 			return next(new HttpError('srv_invalid_request', 400));

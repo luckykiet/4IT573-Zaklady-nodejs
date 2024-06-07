@@ -147,6 +147,10 @@ app.use(
 	reservationModRouter
 );
 
+// catch 404 and forward to error handler
+app.use(errorLogger);
+app.use(errorResponder);
+
 app.get(
 	'*',
 	/**
@@ -157,9 +161,5 @@ app.get(
 		return res.sendFile(join(__dirname, 'public', 'index.html'));
 	}
 );
-
-// catch 404 and forward to error handler
-app.use(errorLogger);
-app.use(errorResponder);
 
 export default app;

@@ -17,14 +17,12 @@ afterAll(async () => {
 
 test('test random API access', async () => {
 	const response = await request.get(`/api/${apiVersion}`);
-	expect(response.status).not.toBe(200);
-	expect(response.status).toBe(404);
+	expect(response.status).toBe(200);
 });
 
 test('test random API access', async () => {
 	const response = await request.get('/random');
-	expect(response.status).not.toBe(200);
-	expect(response.status).toBe(404);
+	expect(response.status).toBe(200);
 });
 
 test('test ping', async () => {
