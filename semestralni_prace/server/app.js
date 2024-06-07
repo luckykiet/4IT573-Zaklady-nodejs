@@ -150,17 +150,10 @@ app.use(
 app.get(
 	'*',
 	/**
-	 * @param {Error} err
 	 * @param {import("express").Request} req
 	 * @param {import("express").Response} res
-	 * @param {import("express").NextFunction} next
 	 */
-	(err, req, res, next) => {
-		console.log('test');
-
-		if (err) {
-			return next(err);
-		}
+	(req, res) => {
 		return res.sendFile(join(__dirname, 'public', 'index.html'));
 	}
 );
