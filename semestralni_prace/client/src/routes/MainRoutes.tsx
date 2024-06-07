@@ -8,6 +8,7 @@ const MaintenanceError = Loadable(lazy(() => import('@/pages/maintenance/ErrorPa
 const HomePage = Loadable(lazy(() => import('@/pages/app/HomePage')));
 const StorePage = Loadable(lazy(() => import('@/pages/app/StorePage')));
 const ReservationPage = Loadable(lazy(() => import('@/pages/app/ReservationPage')));
+const CancelPage = Loadable(lazy(() => import('@/pages/app/CancelPage')));
 
 // ==============================|| MAIN ROUTES ||============================== //
 
@@ -27,6 +28,10 @@ const MainRoutes: RouteObject = {
     {
       path: 'store/:storeId',
       element: <StorePage />
+    },
+    {
+      path: 'cancel/:token',
+      element: <CancelPage />
     },
     {
       path: 'reservation/:reservationId',

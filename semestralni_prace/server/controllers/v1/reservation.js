@@ -194,8 +194,8 @@ export const sendReservationToken = async (req, res, next) => {
 					email: reservation.email,
 					reservation: {
 						...reservation.toObject(),
-						start: newStart.format('DD/MM/YYYY HH:mm'),
-						end: newEnd.format('DD/MM/YYYY HH:mm'),
+						start: dayjs.utc(reservation.start).format('DD/MM/YYYY HH:mm'),
+						end: dayjs.utc(reservation.end).format('DD/MM/YYYY HH:mm'),
 					},
 					store,
 					table,
