@@ -31,6 +31,7 @@ import dayjs from 'dayjs';
 import { RESERVATION_TIME_FORMAT } from '@/config';
 import { DateTimePicker } from '@mui/x-date-pickers';
 import useReservationsApi from '@/api/useReservationsApi';
+import { useAuthStore } from '@/store/auth-store';
 
 // ==============================|| STAFF - ADD / EDIT ||============================== //
 
@@ -41,7 +42,7 @@ export interface Props {
 
 const AddReservation = ({ table, onCancel }: Props) => {
   const navigate = useNavigate();
-
+  const { user } = useAuthStore();
   const { addReservation } = useReservationsApi();
   const [postMsg, setPostMsg] = useState<string | Error>('');
 
@@ -56,8 +57,8 @@ const AddReservation = ({ table, onCancel }: Props) => {
   const mainUseForm = useForm<FormValidationSchema>({
     resolver: zodResolver(addReservationSchema),
     defaultValues: {
-      name: '',
-      email: '',
+      name: user ? user.name : '',
+      email: user ? user.email : '',
       start: undefined,
       end: undefined
     },
@@ -87,8 +88,8 @@ const AddReservation = ({ table, onCancel }: Props) => {
       addMutation.mutateAsync({
         ...data,
         tableId: table._id,
-        start: dayjs.utc(data.start).format(RESERVATION_TIME_FORMAT),
-        end: dayjs.utc(data.end).format(RESERVATION_TIME_FORMAT)
+        start: dayjs(data.start).format(RESERVATION_TIME_FORMAT),
+        end: dayjs(data.end).format(RESERVATION_TIME_FORMAT)
       });
     } catch (err: any) {
       console.error(err);

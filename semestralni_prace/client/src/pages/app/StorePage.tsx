@@ -22,7 +22,7 @@ export default function StorePage() {
 
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
-  const today = dayjs.utc();
+  const today = dayjs();
   const { isLoading, data: store } = useQuery({
     queryKey: [
       'store',

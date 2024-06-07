@@ -6,14 +6,14 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import _ from 'lodash';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 dayjs.extend(utc);
 
 export default function ReservationPage() {
   const { reservationId } = useParams();
-  const { fetchReservation, sendCancelReservationRequest } = useReservationsApi();
+  const { fetchReservation, cancelMerchantReservation } = useReservationsApi();
   const now = dayjs();
-
+  const navigate = useNavigate();
   const [postMsg, setPostMsg] = useState<string | Error>('');
 
   const { isLoading, data: reservation } = useQuery({
@@ -23,13 +23,13 @@ export default function ReservationPage() {
   });
 
   const sendCancelMutation = useMutation({
-    mutationFn: (id: string) => sendCancelReservationRequest({ id }),
+    mutationFn: (id: string) => cancelMerchantReservation({ id }),
     onError: (error) => {
       console.log(error);
       setPostMsg(error);
     },
     onSuccess: () => {
-      setPostMsg('Cancel request sent');
+      navigate('/auth/reservations');
     }
   });
   return (

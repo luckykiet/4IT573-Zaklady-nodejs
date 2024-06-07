@@ -9,6 +9,7 @@ import MerchantLayout from '@/layouts/MerchantLayout';
 const MaintenanceError = Loadable(lazy(() => import('@/pages/maintenance/ErrorPage')));
 const HomePage = Loadable(lazy(() => import('@/pages/app/auth/HomePage')));
 const ReservationsPage = Loadable(lazy(() => import('@/pages/app/auth/ReservationsPage')));
+const ReservationPage = Loadable(lazy(() => import('@/pages/app/auth/ReservationPage')));
 const StoresPage = Loadable(lazy(() => import('@/pages/app/auth/StoresPage')));
 const AddStorePage = Loadable(lazy(() => import('@/pages/app/auth/AddStorePage')));
 const StorePage = Loadable(lazy(() => import('@/pages/app/auth/StorePage')));
@@ -34,6 +35,14 @@ const GuardedRoutes: RouteObject = {
       element: (
         <MerchantLayout>
           <ReservationsPage />
+        </MerchantLayout>
+      )
+    },
+    {
+      path: 'reservation/:reservationId',
+      element: (
+        <MerchantLayout>
+          <ReservationPage />
         </MerchantLayout>
       )
     },

@@ -73,13 +73,23 @@ const useReservationsApi = () => {
     return msg;
   };
 
+  const cancelMerchantReservation = async ({ id }: { id: string }): Promise<string> => {
+    const { data } = await axios.delete<{ success: boolean; msg: string | undefined }>(`/mod/reservation/${id}`);
+    const { success, msg } = data;
+    if (!success || !msg) {
+      throw new Error(`err_fetch_failed`);
+    }
+    return msg;
+  };
+
   return {
     fetchAllStoresReservations,
     fetchOwnReservations,
     addReservation,
     fetchReservation,
     cancelReservation,
-    sendCancelReservationRequest
+    sendCancelReservationRequest,
+    cancelMerchantReservation
   };
 };
 

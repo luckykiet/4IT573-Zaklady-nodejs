@@ -121,12 +121,9 @@ export const updateTable = async (req, res, next) => {
 		if (table.isAvailable && !isAvailable && reservations.length > 0) {
 			// Send mail
 			const promises = reservations.map(async (reservation) => {
-				const now = dayjs.utc();
+				const now = dayjs();
 				//send cancelation email for incoming reservation
-				if (
-					dayjs.utc(reservation.end).isAfter(now) &&
-					!reservation.isCancelled
-				) {
+				if (dayjs(reservation.end).isAfter(now) && !reservation.isCancelled) {
 					if (process.env.NODE_ENV !== 'TEST') {
 						try {
 							const table = tables.find((t) => reservation._id.equals(t._id));
@@ -134,10 +131,8 @@ export const updateTable = async (req, res, next) => {
 								email: reservation.email,
 								reservation: {
 									...reservation.toObject(),
-									start: dayjs
-										.utc(reservation.start)
-										.format('DD/MM/YYYY HH:mm'),
-									end: dayjs.utc(reservation.end).format('DD/MM/YYYY HH:mm'),
+									start: dayjs(reservation.start).format('DD/MM/YYYY HH:mm'),
+									end: dayjs(reservation.end).format('DD/MM/YYYY HH:mm'),
 								},
 								store,
 								table,
@@ -258,9 +253,9 @@ export const deleteTable = async (req, res, next) => {
 
 		// Send mail
 		const promises = reservations.map(async (reservation) => {
-			const now = dayjs.utc();
+			const now = dayjs();
 			//send cancelation email for incoming reservation
-			if (dayjs.utc(reservation.end).isAfter(now) && !reservation.isCancelled) {
+			if (dayjs(reservation.end).isAfter(now) && !reservation.isCancelled) {
 				if (process.env.NODE_ENV !== 'TEST') {
 					try {
 						const table = tables.find((t) => reservation._id.equals(t._id));
@@ -268,8 +263,8 @@ export const deleteTable = async (req, res, next) => {
 							email: reservation.email,
 							reservation: {
 								...reservation.toObject(),
-								start: dayjs.utc(reservation.start).format('DD/MM/YYYY HH:mm'),
-								end: dayjs.utc(reservation.end).format('DD/MM/YYYY HH:mm'),
+								start: dayjs(reservation.start).format('DD/MM/YYYY HH:mm'),
+								end: dayjs(reservation.end).format('DD/MM/YYYY HH:mm'),
 							},
 							store,
 							table,

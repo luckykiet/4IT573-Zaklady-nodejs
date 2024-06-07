@@ -122,14 +122,12 @@ describe(`Reservation merchant on opened store`, () => {
 
 		cookie = response.headers['set-cookie'];
 
-		const start = dayjs
-			.utc()
+		const start = dayjs()
 			.add(1, 'day')
 			.set('hour', 15)
 			.set('minute', 0)
 			.format('YYYYMMDDHHmm');
-		const end = dayjs
-			.utc()
+		const end = dayjs()
 			.add(1, 'day')
 			.set('hour', 17)
 			.set('minute', 0)
@@ -141,8 +139,8 @@ describe(`Reservation merchant on opened store`, () => {
 			tableId: table._id,
 			email: 'reservation@example.com',
 			name: 'Reservation Name',
-			start: dayjs.utc(start, 'YYYYMMDDHHmm').toDate(),
-			end: dayjs.utc(end, 'YYYYMMDDHHmm').toDate(),
+			start: dayjs(start, 'YYYYMMDDHHmm').toDate(),
+			end: dayjs(end, 'YYYYMMDDHHmm').toDate(),
 			isCancelled: false,
 		});
 
@@ -152,8 +150,8 @@ describe(`Reservation merchant on opened store`, () => {
 			tableId: table2._id,
 			email: 'reservation@example.com',
 			name: 'Reservation Name',
-			start: dayjs.utc(start, 'YYYYMMDDHHmm').toDate(),
-			end: dayjs.utc(end, 'YYYYMMDDHHmm').toDate(),
+			start: dayjs(start, 'YYYYMMDDHHmm').toDate(),
+			end: dayjs(end, 'YYYYMMDDHHmm').toDate(),
 			isCancelled: false,
 		});
 	});
@@ -163,14 +161,12 @@ describe(`Reservation merchant on opened store`, () => {
 	});
 
 	test('should update a reservation successfully', async () => {
-		const newStart = dayjs
-			.utc()
+		const newStart = dayjs()
 			.add(1, 'day')
 			.set('hour', 17)
 			.set('minute', 0)
 			.format('YYYYMMDDHHmm');
-		const newEnd = dayjs
-			.utc()
+		const newEnd = dayjs()
 			.add(1, 'day')
 			.set('hour', 18)
 			.set('minute', 0)
@@ -192,14 +188,12 @@ describe(`Reservation merchant on opened store`, () => {
 	});
 
 	test('should update a reservation successfully', async () => {
-		const newStart = dayjs
-			.utc()
+		const newStart = dayjs()
 			.add(1, 'day')
 			.set('hour', 18)
 			.set('minute', 0)
 			.format('YYYYMMDDHHmm');
-		const newEnd = dayjs
-			.utc()
+		const newEnd = dayjs()
 			.add(1, 'day')
 			.set('hour', 19)
 			.set('minute', 0)
@@ -221,8 +215,8 @@ describe(`Reservation merchant on opened store`, () => {
 	});
 
 	test('should block update reservation because existents', async () => {
-		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
-		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
+		const newStart = dayjs().add(1, 'day').set('hour', 16).set('minute', 0);
+		const newEnd = dayjs().add(1, 'day').set('hour', 17).set('minute', 0);
 
 		await Reservations.create({
 			userId: user._id,
@@ -248,8 +242,8 @@ describe(`Reservation merchant on opened store`, () => {
 		expect(response.body.success).toBe(false);
 	});
 	test('should block update reservation because table not available', async () => {
-		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
-		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
+		const newStart = dayjs().add(1, 'day').set('hour', 16).set('minute', 0);
+		const newEnd = dayjs().add(1, 'day').set('hour', 17).set('minute', 0);
 
 		const reser = await Reservations.create({
 			userId: user._id,
@@ -276,14 +270,12 @@ describe(`Reservation merchant on opened store`, () => {
 		expect(response.body.success).toBe(false);
 	});
 	test('should get wrong time', async () => {
-		const newStart = dayjs
-			.utc()
+		const newStart = dayjs()
 			.add(1, 'day')
 			.set('hour', 16)
 			.set('minute', 0)
 			.format('YYYYMMDDHHmm');
-		const newEnd = dayjs
-			.utc()
+		const newEnd = dayjs()
 			.add(1, 'day')
 			.set('hour', 13)
 			.set('minute', 0)
@@ -356,8 +348,8 @@ describe(`Reservation merchant on opened store`, () => {
 	});
 
 	test('should fetch 2 reservations of all stores', async () => {
-		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
-		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
+		const newStart = dayjs().add(1, 'day').set('hour', 16).set('minute', 0);
+		const newEnd = dayjs().add(1, 'day').set('hour', 17).set('minute', 0);
 
 		await Reservations.create({
 			userId: user._id,
@@ -393,8 +385,8 @@ describe(`Reservation merchant on opened store`, () => {
 	});
 
 	test('should fetch 2 reservations of incoming stores', async () => {
-		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
-		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
+		const newStart = dayjs().add(1, 'day').set('hour', 16).set('minute', 0);
+		const newEnd = dayjs().add(1, 'day').set('hour', 17).set('minute', 0);
 
 		await Reservations.create({
 			userId: user._id,
@@ -441,8 +433,8 @@ describe(`Reservation merchant on opened store`, () => {
 	});
 
 	test('should fetch 2 reservations of cancelled stores', async () => {
-		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
-		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
+		const newStart = dayjs().add(1, 'day').set('hour', 16).set('minute', 0);
+		const newEnd = dayjs().add(1, 'day').set('hour', 17).set('minute', 0);
 
 		await Reservations.create({
 			userId: user._id,
@@ -489,8 +481,8 @@ describe(`Reservation merchant on opened store`, () => {
 	});
 
 	test('should fetch 3 reservations of expired and cancelled stores', async () => {
-		const newStart = dayjs.utc().add(1, 'day').set('hour', 16).set('minute', 0);
-		const newEnd = dayjs.utc().add(1, 'day').set('hour', 17).set('minute', 0);
+		const newStart = dayjs().add(1, 'day').set('hour', 16).set('minute', 0);
+		const newEnd = dayjs().add(1, 'day').set('hour', 17).set('minute', 0);
 
 		await Reservations.create({
 			userId: user._id,

@@ -44,8 +44,8 @@ export const addReservation = async (req, res, next) => {
 			return next(new HttpError('srv_invalid_request', 400));
 		}
 
-		const newStart = dayjs.utc(start, CONSTANTS.RESERVATION_TIME_FORMAT, true);
-		const newEnd = dayjs.utc(end, CONSTANTS.RESERVATION_TIME_FORMAT, true);
+		const newStart = dayjs(start, CONSTANTS.RESERVATION_TIME_FORMAT, true);
+		const newEnd = dayjs(end, CONSTANTS.RESERVATION_TIME_FORMAT, true);
 
 		if (!newStart.isValid() || !newEnd.isValid() || !newEnd.isAfter(newStart)) {
 			return next(new HttpError('srv_invalid_time', 400));
@@ -71,8 +71,8 @@ export const addReservation = async (req, res, next) => {
 			return next(new HttpError('srv_store_close', 400));
 		}
 
-		const timeStart = dayjs.utc(storeOpeningTime.start, 'HH:mm');
-		const timeEnd = dayjs.utc(storeOpeningTime.end, 'HH:mm');
+		const timeStart = dayjs(storeOpeningTime.start, 'HH:mm');
+		const timeEnd = dayjs(storeOpeningTime.end, 'HH:mm');
 
 		const storeStartTime = newStart
 			.clone()
@@ -194,8 +194,8 @@ export const sendReservationToken = async (req, res, next) => {
 					email: reservation.email,
 					reservation: {
 						...reservation.toObject(),
-						start: dayjs.utc(reservation.start).format('DD/MM/YYYY HH:mm'),
-						end: dayjs.utc(reservation.end).format('DD/MM/YYYY HH:mm'),
+						start: dayjs(reservation.start).format('DD/MM/YYYY HH:mm'),
+						end: dayjs(reservation.end).format('DD/MM/YYYY HH:mm'),
 					},
 					store,
 					table,
@@ -281,8 +281,8 @@ export const cancelReservation = async (req, res, next) => {
 					email: reservation.email,
 					reservation: {
 						...reservation.toObject(),
-						start: newStart.format('DD/MM/YYYY HH:mm'),
-						end: newEnd.format('DD/MM/YYYY HH:mm'),
+						start: dayjs(reservation.start).format('DD/MM/YYYY HH:mm'),
+						end: dayjs(reservation.end).format('DD/MM/YYYY HH:mm'),
 					},
 					store,
 					table,
@@ -351,7 +351,7 @@ export const fetchReservationsOfStoreAtDay = async (req, res, next) => {
 			return next(new HttpError('srv_invalid_request', 400));
 		}
 
-		const dayToFind = dayjs.utc(date, 'YYYYMMDD', true);
+		const dayToFind = dayjs(date, 'YYYYMMDD', true);
 		const startOfDay = dayToFind.startOf('day').toDate();
 		const endOfDay = dayToFind.endOf('day').toDate();
 

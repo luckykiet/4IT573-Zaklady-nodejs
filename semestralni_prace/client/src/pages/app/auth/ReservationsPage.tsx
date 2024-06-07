@@ -16,7 +16,7 @@ export default function ReservationsPage() {
     queryFn: () => fetchAllStoresReservations()
   });
 
-  const now = dayjs.utc();
+  const now = dayjs();
 
   return (
     <Container maxWidth={'xl'}>
@@ -47,7 +47,7 @@ export default function ReservationsPage() {
                     {data.reservations.map((reservation) => {
                       const store = data.stores ? data.stores.find((s) => s._id === reservation.storeId) : null;
                       const table = store ? store?.tables?.find((t) => t._id === reservation.tableId) : null;
-                      const isExpired = dayjs.utc(reservation.end).isBefore(now);
+                      const isExpired = dayjs(reservation.end).isBefore(now);
                       return (
                         <TableRow key={reservation._id}>
                           <TableCell onClick={() => navigate(`/auth/store/${reservation.storeId}`)}>
@@ -56,10 +56,10 @@ export default function ReservationsPage() {
                           <TableCell onClick={() => navigate(`/auth/table/${reservation.tableId}`)}>
                             {table ? table.name : reservation.tableId}
                           </TableCell>
-                          <TableCell>{reservation.name}</TableCell>
+                          <TableCell onClick={() => navigate(`/auth/reservation/${reservation._id}`)}>{reservation.name}</TableCell>
                           <TableCell>{reservation.email}</TableCell>
                           <TableCell>
-                            {reservation.start} - {reservation.end}
+                            {dayjs(reservation.start).format('DD/MM/YYYY HH:mm')} - {dayjs(reservation.end).format('DD/MM/YYYY HH:mm')}
                           </TableCell>
                           <TableCell>{reservation.isCancelled ? 'Cancelled' : isExpired ? 'Expired' : 'Incoming'}</TableCell>
                         </TableRow>

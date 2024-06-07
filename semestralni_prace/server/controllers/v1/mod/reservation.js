@@ -53,7 +53,7 @@ export const fetchReservationsOfStore = async (req, res, next) => {
 				return next(new HttpError('srv_invalid_request', 400));
 			}
 		});
-		const now = dayjs.utc();
+		const now = dayjs();
 		const query = { storeId: store._id };
 
 		if (!typesToFind.includes('all')) {
@@ -119,7 +119,7 @@ export const fetchReservationsOfAllStores = async (req, res, next) => {
 				return next(new HttpError('srv_invalid_request', 400));
 			}
 		});
-		const now = dayjs.utc();
+		const now = dayjs();
 		const query = { storeId: { $in: storeIds } };
 
 		if (!typesToFind.includes('all')) {
@@ -211,17 +211,17 @@ export const updateCustomerReservation = async (req, res, next) => {
 		if (isCancelled === true) {
 			reservation.isCancelled = true;
 		} else {
-			let newStart = dayjs.utc(reservation.start);
-			let newEnd = dayjs.utc(reservation.end);
+			let newStart = dayjs(reservation.start);
+			let newEnd = dayjs(reservation.end);
 
 			if (start) {
-				newStart = dayjs.utc(start, CONSTANTS.RESERVATION_TIME_FORMAT, true);
+				newStart = dayjs(start, CONSTANTS.RESERVATION_TIME_FORMAT, true);
 				if (!newStart.isValid()) {
 					return next(new HttpError('srv_invalid_time', 400));
 				}
 			}
 			if (end) {
-				newEnd = dayjs.utc(end, CONSTANTS.RESERVATION_TIME_FORMAT, true);
+				newEnd = dayjs(end, CONSTANTS.RESERVATION_TIME_FORMAT, true);
 				if (!newEnd.isValid()) {
 					return next(new HttpError('srv_invalid_time', 400));
 				}
@@ -239,8 +239,8 @@ export const updateCustomerReservation = async (req, res, next) => {
 				return next(new HttpError('srv_store_close', 400));
 			}
 
-			const timeStart = dayjs.utc(storeOpeningTime.start, 'HH:mm');
-			const timeEnd = dayjs.utc(storeOpeningTime.end, 'HH:mm');
+			const timeStart = dayjs(storeOpeningTime.start, 'HH:mm');
+			const timeEnd = dayjs(storeOpeningTime.end, 'HH:mm');
 
 			const storeStartTime = newStart
 				.clone()

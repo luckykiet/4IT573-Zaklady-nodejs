@@ -416,14 +416,12 @@ describe(`Store MOD api`, () => {
 	});
 
 	test('should return 200 and delete a store with its tables and reservations', async () => {
-		const start = dayjs
-			.utc()
+		const start = dayjs()
 			.add(1, 'day')
 			.set('hour', 15)
 			.set('minute', 0)
 			.format('YYYYMMDDHHmm');
-		const end = dayjs
-			.utc()
+		const end = dayjs()
 			.add(1, 'day')
 			.set('hour', 17)
 			.set('minute', 0)
@@ -468,8 +466,8 @@ describe(`Store MOD api`, () => {
 			tableId: t1._id,
 			email: 'reservation@example.com',
 			name: 'Reservation Name',
-			start: dayjs.utc(start, 'YYYYMMDDHHmm').toDate(),
-			end: dayjs.utc(end, 'YYYYMMDDHHmm').toDate(),
+			start: dayjs(start, 'YYYYMMDDHHmm').toDate(),
+			end: dayjs(end, 'YYYYMMDDHHmm').toDate(),
 			isCancelled: false,
 		});
 
@@ -479,8 +477,8 @@ describe(`Store MOD api`, () => {
 			tableId: t2._id,
 			email: 'reservation@example.com',
 			name: 'Reservation Name',
-			start: dayjs.utc(start, 'YYYYMMDDHHmm').toDate(),
-			end: dayjs.utc(end, 'YYYYMMDDHHmm').toDate(),
+			start: dayjs(start, 'YYYYMMDDHHmm').toDate(),
+			end: dayjs(end, 'YYYYMMDDHHmm').toDate(),
 			isCancelled: false,
 		});
 
@@ -490,8 +488,8 @@ describe(`Store MOD api`, () => {
 			tableId: t3._id,
 			email: 'reservation@example.com',
 			name: 'Reservation Name',
-			start: dayjs.utc(start, 'YYYYMMDDHHmm').toDate(),
-			end: dayjs.utc(end, 'YYYYMMDDHHmm').toDate(),
+			start: dayjs(start, 'YYYYMMDDHHmm').toDate(),
+			end: dayjs(end, 'YYYYMMDDHHmm').toDate(),
 			isCancelled: false,
 		});
 		const response = await request

@@ -39,8 +39,10 @@ export const fetchReservationsOfUser = async (req, res, next) => {
 				return next(new HttpError('srv_invalid_request', 400));
 			}
 		});
-		const now = dayjs.utc();
-		const query = { userId: req.user._id };
+		const now = dayjs();
+		const query = {
+			$or: [{ userId: req.user._id }, { email: req.user.email }],
+		};
 
 		if (!typesToFind.includes('all')) {
 			const conditions = [];
